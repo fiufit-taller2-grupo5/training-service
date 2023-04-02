@@ -1,0 +1,18 @@
+version: '3.9'
+
+networks:
+  backoffice_network:
+
+
+services:
+  training-service:
+    build:
+      context: ../training-service
+      dockerfile: dev.Dockerfile
+    image: training-service-dev
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../training-service/src:/app/src
+    networks:
+      - backoffice_network
