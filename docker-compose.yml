@@ -10,9 +10,36 @@ services:
       context: ../training-service
       dockerfile: dev.Dockerfile
     image: training-service-dev
-    ports:
-      - "3001:3000"
     volumes:
       - ../training-service/src:/app/src
     networks:
       - backoffice_network
+
+  admin-frontend:
+    build:
+      context: ../web-app
+      dockerfile: dev.Dockerfile
+    ports:
+      - "3001:3000"
+    image: admin-frontend-dev
+    volumes:
+      - ../web-app/src:/app/src
+    networks:
+      - backoffice_network
+
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: dev.Dockerfile
+    image: api-gateway-dev
+    environment:
+      - DEBUG=true
+    ports:
+      - "3000:8080"
+    volumes:
+      - ../api-gateway/krakend.json:/etc/krakend/krakend.json
+    networks:
+      - backoffice_network
+    depends_on:
+      - training-service
+      - admin-frontend
