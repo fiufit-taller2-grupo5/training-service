@@ -42,4 +42,3 @@ services:
       - backoffice_network
     depends_on:
       - training-service
-      - admin-frontend
