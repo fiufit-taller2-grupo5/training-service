@@ -12,6 +12,8 @@ RUN yarn install --pure-lockfile
 
 COPY . .
 
+RUN yarn build
+
 # Expose the default Vite development server port
 EXPOSE 3000
 
