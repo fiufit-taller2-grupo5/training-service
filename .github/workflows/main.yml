@@ -15,7 +15,7 @@ jobs:
           token: ${{ secrets.OKTETO_KEY }}
       
       - name: Create devlopment environments namespace
-        uses: okteto/create-namespace@latest
+        uses: okteto/namespace@latest
         with:
           namespace: prod-lucianotrujillo
       
