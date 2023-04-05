@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: training-service
-          image: registry.cloud.okteto.net/devenvs-lucianotrujillo/training-service:latest
+          image: registry.cloud.okteto.net/prod/training-service:latest
           ports:
             - containerPort: 3000
       # This means that, if the container exits for any reason, it should restart again. It is the default value
