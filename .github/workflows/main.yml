@@ -19,3 +19,6 @@ jobs:
         with:
           namespace: devenvs-lucianotrujillo
       
+      - name: "Build okteto image"
+        run: okteto build -f dev.Dockerfile -t training-service .
+      
