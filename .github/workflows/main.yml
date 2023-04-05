@@ -15,12 +15,9 @@ jobs:
         with:
           token: ${{ secrets.OKTETO_KEY }}
 
-      - uses: okteto/namespace@latest
+      - name: "Build"
+        uses: okteto/namespace@latest
         with:
           namespace: lucianotrujillo
+        run: okteto build --progress=plain -f dev.Dockerfile -t training-service:latest .
 
-      - name: "Build"
-        uses: okteto/build@latest
-        with:
-          tag: okteto.dev/training-service:latest
-          file: dev.Dockerfile
