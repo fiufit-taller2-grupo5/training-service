@@ -1,23 +1,27 @@
-apiVersion: apps/v1
+# A Service is a higher-level resource that provides network access to a set of replica Pods
+# allowing them to communicate with each other and with external clients.
+apiVersion: v1
 kind: Service
-
 metadata:
-  # Name of the service
   name: training-service
-  # Labels are key-value pair assigned in this case to the service
-  # The key can be whatever I want, in this case, I called it app to reference it in the future
   labels:
-    # Reffering to training-service app
     app: training-service
-
 spec:
-  # This means it will select the pods which its label matches exactly with "app: training-service"
+  # Using a NodePort gives you the freedom to set up your own load balancing solution, to configure environments that are
+  # not fully supported by Kubernetes, or even to expose one or more nodes' IP addresses directly.
+  type: ClusterIP
+  # Select all pods with label app: training-service
   selector:
     app: training-service
-  # This indicates the pods created by the deployment will have app: training-service as a label
   ports:
+    # The port number on which the Service listens for incoming traffic
     - port: 3000
-      targetPort: 3000
+      # I can define a  name for the port and refer to it in the ingress
+      name: training-service-port
+      # Listens using TCP Protocol
       protocol: TCP
-      name: http
-  type: ClusterIP
+      # The port number on which the application running inside the Pods is listening and ready to receive traffic.
+      # When a client sends traffic to the Service's port, the traffic is forwarded to one of the Pods in the deployment.
+      # The traffic is then directed to the Pod's targetPort,
+      targetPort: 3000 # The port exposed in the training-service pod's containers
+  
