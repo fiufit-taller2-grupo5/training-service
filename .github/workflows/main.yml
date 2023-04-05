@@ -9,11 +9,18 @@ jobs:
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@v2
+
       - name: "Login"
         uses: okteto/login@latest
         with:
           token: ${{ secrets.OKTETO_KEY }}
+
+      - uses: okteto/namespace@latest
+        with:
+          name: lucianotrujillo
+
       - name: "Build"
         uses: okteto/build@latest
         with:
+          tag: okteto.dev/training-service:latest
           file: dev.Dockerfile
