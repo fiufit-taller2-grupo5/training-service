@@ -10,12 +10,12 @@ jobs:
       - name: "Checkout Code"
         uses: actions/checkout@v2
 
-    - uses: okteto/context@latest
-      with:
-        token: ${{ secrets.OKTETO_KEY }}
-    
-    - name: "Create devlopment environments namespace"
-      uses: okteto/create-namespace@latest
-      with:
-        namespace: devenvs-lucianotrujillo
+      - uses: okteto/context@latest
+        with:
+          token: ${{ secrets.OKTETO_KEY }}
+      
+      - name: "Create devlopment environments namespace"
+        uses: okteto/create-namespace@latest
+        with:
+          namespace: devenvs-lucianotrujillo
       
