@@ -7,21 +7,21 @@ jobs:
   okteto-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout Code"
+      - name: Checkout Code
         uses: actions/checkout@v2
 
       - uses: okteto/context@latest
         with:
           token: ${{ secrets.OKTETO_KEY }}
       
-      - name: "Create devlopment environments namespace"
+      - name: Create devlopment environments namespace
         uses: okteto/create-namespace@latest
         with:
           namespace: devenvs-lucianotrujillo
       
-      - name: Build and deploy application container to Okteto Flask Namespace
+      - name: Build image and deploy 
         uses: ./.github/actions/build-and-deploy
         with:
           tag: okteto.dev/training-service:latest
           file: dev.Dockerfile
-      
+

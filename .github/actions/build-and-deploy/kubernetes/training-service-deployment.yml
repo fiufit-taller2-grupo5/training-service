@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of the deployment
+  name: training-service-deployment
+  # Labels are key-value pair assigned in this case to the deployment
+  # The key can be whatever I want, in this case, I called it app to reference it in the future
+  labels:
+    # Reffering to training-service app
+    app: training-service
+# Specification for the deployment
+spec:
+  # kubernetes will do whatever it can to ensure having always exactly 1 pod running
+  replicas: 1
+  selector:
+    # This means it will select the pods which its label matches exactly with "app: training-service"
+    matchLabels:
+      app: training-service
+  template:
+    metadata:
+      # This indicates the pods created by the deployment will have app: training-service as a label
+      labels:
+        app: training-service
+    spec:
+      containers:
+        - name: training-service
+          image: okteto.dev/devenvs-lucianotrujillo/training-service:latest
+          ports:
+            - containerPort: 3000
+      # This means that, if the container exits for any reason, it should restart again. It is the default value
+      # Other options are OnFailure y Never
+      restartPolicy: Always
