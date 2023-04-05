@@ -24,4 +24,6 @@ params=$(eval echo "$params")
 echo running: okteto build $params
 okteto build $params
 echo build completed successfully
+# print files of directory
+ls -la
 okteto deploy -f okteto.yml
