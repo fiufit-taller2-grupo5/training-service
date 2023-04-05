@@ -6,7 +6,7 @@
 4. ```docker compose up```
 
 opcional
-5. cada vez que quieras actualizar todos los repos, ejecutar ./development-setup/pull-all-repos.sh desde fuera de la carpeta de development-setup
-6. cada vez que quieras hacer pushear en todos los repos, ejecutar ./development-setup/push-all-repos.sh desde fuera de la carpeta de development-setup
+5. cada vez que quieras actualizar todos los repos al mismo tiempo, ejecutar ./development-setup/pull-all-repos.sh desde fuera de la carpeta de development-setup
+6. cada vez que quieras hacer pushear en todos los repos al mismo tiempo, ejecutar ./development-setup/push-all-repos.sh desde fuera de la carpeta de development-setup
 
 
