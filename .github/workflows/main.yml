@@ -20,8 +20,8 @@ jobs:
           namespace: devenvs-lucianotrujillo
       
       - name: Build and deploy application container to Okteto Flask Namespace
-        uses: okteto/deploy-stack@latest
+        uses: ./github/actions/build-and-deploy
         with:
-          name: training-service
-          build: true
+          tag: training-service
+          file: dev.Dockerfile
       
