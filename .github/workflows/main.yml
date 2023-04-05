@@ -1,0 +1,19 @@
+name: Training - Tests, Linter and Deployment to Okteto
+on:
+  push:
+    branches:
+      - master
+jobs:
+  okteto-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v2
+      - name: "Login"
+        uses: okteto/login@latest
+        with:
+          token: ${{ secrets.OKTETO_KEY }}
+      - name: "Build"
+        uses: okteto/build@latest
+        with:
+          file: Dockerfile
