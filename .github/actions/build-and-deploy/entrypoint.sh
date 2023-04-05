@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+tag=$1
 file=$2
 global=$5
 
@@ -12,7 +13,7 @@ if [ ! -z "$OKTETO_CA_CERT" ]; then
    update-ca-certificates
 fi
 
-params=$(eval echo --progress plain -f "$file")
+params=$(eval echo --progress plain -t "$tag" -f "$file")
 
 if [ "$global" = "true" ]; then
     params="${params} --global"
