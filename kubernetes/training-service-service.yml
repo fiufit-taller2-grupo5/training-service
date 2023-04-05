@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Service
+
+metadata:
+  # Name of the service
+  name: training-service
+  # Labels are key-value pair assigned in this case to the service
+  # The key can be whatever I want, in this case, I called it app to reference it in the future
+  labels:
+    # Reffering to training-service app
+    app: training-service
+
+spec:
+  # This means it will select the pods which its label matches exactly with "app: training-service"
+  selector:
+    app: training-service
+  # This indicates the pods created by the deployment will have app: training-service as a label
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  type: ClusterIP
