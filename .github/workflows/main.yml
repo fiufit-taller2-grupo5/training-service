@@ -17,7 +17,7 @@ jobs:
 
       - uses: okteto/namespace@latest
         with:
-          name: lucianotrujillo
+          namespace: lucianotrujillo
 
       - name: "Build"
         uses: okteto/build@latest
