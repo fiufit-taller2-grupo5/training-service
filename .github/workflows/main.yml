@@ -10,16 +10,12 @@ jobs:
       - name: "Checkout Code"
         uses: actions/checkout@v2
 
-      - name: "Login"
-        uses: okteto/login@latest
-        with:
-          token: ${{ secrets.OKTETO_KEY }}
-
-      - name: "Namespace"
-        uses: okteto/namespace@latest
-        with:
-          namespace: lucianotrujillo
+    - uses: okteto/context@latest
+      with:
+        token: ${{ secrets.OKTETO_KEY }}
+    
+    - name: "Create devlopment environments namespace"
+      uses: okteto/create-namespace@latest
+      with:
+        namespace: devenvs-lucianotrujillo
       
-      - name: "Build"
-        run: okteto build --progress=plain -f dev.Dockerfile -t training-service:latest .
-
