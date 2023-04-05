@@ -2,7 +2,7 @@ name: Training - Tests, Linter and Deployment to Okteto
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   okteto-deployment:
     runs-on: ubuntu-latest
