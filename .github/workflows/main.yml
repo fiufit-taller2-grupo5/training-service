@@ -16,4 +16,4 @@ jobs:
       - name: "Build"
         uses: okteto/build@latest
         with:
-          file: Dockerfile
+          file: dev.Dockerfile
