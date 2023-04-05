@@ -21,5 +21,9 @@ jobs:
           namespace: lucianotrujillo
       
       - name: "Build"
-        run: okteto build --progress=plain -f dev.Dockerfile -t training-service:latest .
+        using: "docker"
+        image: "Okteto.Dockerfile"
+        args:
+        - okteto.dev/training-service:latest
+        - dev.Dockerfile
 
