@@ -24,6 +24,8 @@ services:
     image: admin-frontend-dev
     volumes:
       - ../web-app/src:/app/src
+      - ../web-app/index.html:/app/index.html
+      - ../web-app/public:/app/public
     networks:
       - backoffice_network
 
