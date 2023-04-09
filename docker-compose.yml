@@ -32,14 +32,14 @@ services:
   api-gateway:
     build:
       context: ../api-gateway
-      dockerfile: dev.Dockerfile
-    image: api-gateway-dev
+      dockerfile: Dockerfile
+    image: api-gateway-express-dev
     environment:
       - DEBUG=true
     ports:
-      - "3000:8080"
+      - "3000:8181"
     volumes:
-      - ../api-gateway/krakend.json:/etc/krakend/krakend.json
+      - ../api-gateway/src:/app/src
     networks:
       - backoffice_network
     depends_on:
