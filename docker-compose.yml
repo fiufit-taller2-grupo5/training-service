@@ -15,6 +15,18 @@ services:
     networks:
       - backoffice_network
 
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    image: user-service-dev
+    ports:
+      - "3002:7878"
+    volumes:
+      - ../user-service/src:/app/src
+    networks:
+      - backoffice_network
+
   admin-frontend:
     build:
       context: ../web-app
