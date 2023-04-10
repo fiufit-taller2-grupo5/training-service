@@ -38,7 +38,6 @@ services:
       - ../web-app/src:/app/src
       - ../web-app/index.html:/app/index.html
       - ../web-app/public:/app/public
-      - ../web-app/vite.config.ts:/app/vite.config.ts
     networks:
       - backoffice_network
 
