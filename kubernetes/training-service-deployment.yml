@@ -26,7 +26,7 @@ spec:
         - name: training-service
           image: registry.cloud.okteto.net/prod-lucianotrujillo/training-service:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 80
       # This means that, if the container exits for any reason, it should restart again. It is the default value
       # Other options are OnFailure y Never
       restartPolicy: Always

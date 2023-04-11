@@ -15,7 +15,7 @@ spec:
     app: training-service
   ports:
     # The port number on which the Service listens for incoming traffic
-    - port: 3000
+    - port: 80
       # I can define a  name for the port and refer to it in the ingress
       name: training-service-port
       # Listens using TCP Protocol
@@ -23,5 +23,5 @@ spec:
       # The port number on which the application running inside the Pods is listening and ready to receive traffic.
       # When a client sends traffic to the Service's port, the traffic is forwarded to one of the Pods in the deployment.
       # The traffic is then directed to the Pod's targetPort,
-      targetPort: 3000 # The port exposed in the training-service pod's containers
+      targetPort: 80 # The port exposed in the training-service pod's containers
   

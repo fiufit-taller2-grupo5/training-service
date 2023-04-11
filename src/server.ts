@@ -1,7 +1,7 @@
 // src/server.ts
 import 'reflect-metadata';
 import { createApp } from './app';
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 80;
 const app = createApp();
 
 app.get('/health', (_, res) => {
