@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile
     image: user-service-dev
     ports:
-      - "3002:7878"
+      - "3002:80"
     volumes:
       - ../user-service/src:/app/src
     networks:
@@ -56,3 +56,21 @@ services:
       - backoffice_network
     depends_on:
       - training-service
+
+  postgres-service:
+    container_name: postgres-service
+    image: postgres:15.2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=12345678
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backoffice_network
+  
+volumes:
+  postgres-data:
+
