@@ -22,8 +22,8 @@ services:
     image: user-service-dev
     ports:
       - "3002:80"
-    volumes:
-      - ../user-service/src:/app/src
+    #volumes:
+     # - ../user-service/src:/app/src
     networks:
       - backoffice_network
 
@@ -38,6 +38,7 @@ services:
       - ../web-app/src:/app/src
       - ../web-app/index.html:/app/index.html
       - ../web-app/public:/app/public
+      - ../web-app/vite.config.ts:/app/vite.config.ts
     networks:
       - backoffice_network
 
@@ -49,7 +50,7 @@ services:
     environment:
       - DEBUG=true
     ports:
-      - "3000:8181"
+      - "3000:80"
     volumes:
       - ../api-gateway/src:/app/src
     networks:
