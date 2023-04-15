@@ -6,6 +6,7 @@ CLONE_DIR=$(pwd)
 
 # Change to the target directory
 cd "${CLONE_DIR}" || exit
+cd ..
 
 # Clone each repository
 for repo_url in "${REPO_URLS[@]}"; do

@@ -6,7 +6,8 @@ docker compose up -d
 # Step 2: Wait for the database to be ready
 container_name="postgres-service"  # Replace with the name of your PostgreSQL container
 db_host="localhost"
-db_port="5432"
+db_local_port="5432"
+db_host_mapped_port="5434"
 db_user="postgres"
 db_password="12345678"
 db_name="postgres"
@@ -20,7 +21,7 @@ echo "Database is ready."
 # Step 2: Create/overwrite .env file
 PRISMA_ENV_PATH="../user-service/database/prisma/prisma/.env"
 mkdir -p "$(dirname "$PRISMA_ENV_PATH")"
-echo "DATABASE_URL=postgresql://postgres:12345678@localhost:5432/postgres?schema=public" > "$PRISMA_ENV_PATH"
+echo "DATABASE_URL=postgresql://${db_user}:${db_password}@${db_host}:${db_host_mapped_port}/${db_name}?schema=public" > "$PRISMA_ENV_PATH"
 
 # Step 3: Execute yarn and npx prisma db push
 cd ../user-service/database/prisma

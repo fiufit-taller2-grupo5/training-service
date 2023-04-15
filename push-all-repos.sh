@@ -11,6 +11,7 @@ commit_message="$1"
 
 # Get the current directory
 current_dir=$(pwd)
+current_dir="${current_dir}/.."
 
 # Loop through the subdirectories
 for dir in "${current_dir}"/*; do
