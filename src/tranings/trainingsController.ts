@@ -12,7 +12,10 @@ export class TrainingsController extends Controller {
 
   @Get('/')
   public async getAllTrainings(): Promise<Training[]> {
-    return await this.trainingsService.getAll();
+    const trainings = await this.trainingsService.getAll();
+    this.setHeader('Access-Control-Expose-Headers', 'X-Total-Count');
+    this.setHeader('X-Total-Count', `${trainings.length}`);
+    return trainings;
   }
 
   @Get('{trainingId}')
