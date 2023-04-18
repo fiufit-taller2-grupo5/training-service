@@ -1,8 +1,12 @@
 // src/server.ts
 import 'reflect-metadata';
+import morgan from 'morgan';
 import { createApp } from './app';
+
 const port = process.env.PORT || 80;
 const app = createApp();
+
+app.use(morgan('common'));
 
 app.get('/health', (_, res) => {
   res.status(200).send({
