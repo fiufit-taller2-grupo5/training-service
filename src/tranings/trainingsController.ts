@@ -4,7 +4,7 @@ import { TrainingsService } from './trainingsService';
 import { Training } from './training';
 
 @injectable()
-@Route('tranings')
+@Route('trainings')
 export class TrainingsController extends Controller {
   constructor(private trainingsService: TrainingsService) {
     super();
