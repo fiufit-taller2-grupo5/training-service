@@ -1,7 +1,7 @@
 import { Controller, Get, Path, Route } from 'tsoa';
 import { injectable } from 'tsyringe';
 import { TrainingsService } from './trainingsService';
-import { Training } from 'src/types/Training';
+import { Training } from './training';
 
 @injectable()
 @Route('tranings')

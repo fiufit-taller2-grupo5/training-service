@@ -1,4 +1,4 @@
-import { Training } from 'src/types/Training';
+import { Training } from './training';
 import { injectable } from 'tsyringe';
 
 const tranings: Training[] = [
