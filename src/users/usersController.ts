@@ -20,7 +20,7 @@ export class UsersController extends Controller {
     super();
   }
 
-  @Get('{userId}')
+  @Get('/{userId}')
   public async getUser(
     @Path() userId: number,
     @Query() name?: string
