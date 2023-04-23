@@ -2,7 +2,7 @@ name: Postgres DB Push
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "database/**"
 jobs:
