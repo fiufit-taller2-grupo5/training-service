@@ -1,0 +1,31 @@
+name: Postgres DB Push
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "database/**"
+jobs:
+  okteto-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - uses: okteto/context@latest
+        with:
+          token: ${{ secrets.OKTETO_TOKEN }}
+      
+      - name: Create devlopment environments namespace
+        uses: okteto/namespace@latest
+        with:
+          namespace: prod-szwtomas
+      
+      - name: Build image and deploy 
+        uses: ./.github/actions
+        with:
+          tag: okteto.dev/prisma-job:${{ github.sha }}
+          file: database/Dockerfile
+          sha: ${{ github.sha }}
+          okteto_yml: okteto_database.yml
+          k8s_deployment_file: database/prisma/kubernetes/prisma-job.yml

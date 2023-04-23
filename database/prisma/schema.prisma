@@ -1,0 +1,46 @@
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["training-service"]
+}
+
+model TrainingPlan {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  multimedia  Multimedia[]
+  state       String
+  difficulty  Int
+  type        String
+  trainerId   Int
+  planReviews PlanReview[]
+
+  @@schema("training-service")
+}
+
+model Multimedia {
+  id             Int          @id @default(autoincrement())
+  fileUrl        String
+  type           String
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlanId Int
+
+  @@schema("training-service")
+}
+
+model PlanReview {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  comment        String?
+  score          Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlanId Int
+
+  @@schema("training-service")
+}

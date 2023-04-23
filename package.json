@@ -12,7 +12,8 @@
     "build": "tsoa spec-and-routes && tsc",
     "start": "node build/src/server.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint . --fix --ext .js,.jsx,.ts,.tsx"
+    "lint:fix": "eslint . --fix --ext .js,.jsx,.ts,.tsx",
+    "generate": "npx prisma generate"
   },
   "dependencies": {
     "express": "^4.18.2",

@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: prisma-container
+          image: registry.cloud.okteto.net/prod-szwtomas/prisma-job:latest
+          command: ["npx", "prisma", "db", "push", "--force-reset"]
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:12345678@postgres-service:5432/postgres?schema=public"
+      restartPolicy: Never
