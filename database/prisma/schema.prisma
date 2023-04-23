@@ -44,5 +44,3 @@ model PlanReview {
 
   @@schema("training-service")
 }
-
-
