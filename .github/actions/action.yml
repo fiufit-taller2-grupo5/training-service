@@ -18,16 +18,16 @@ inputs:
   global:
     description: 'Use global when you want to make the image availbale to everyone in your team'
     required: false
-    default: false
+    default: "false"
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.tag }}
     - ${{ inputs.file }}
-    - ${{ inputs.path }}
-    - ${{ inputs.buildargs }}
-    - ${{ inputs.global }}
+    - ${{ inputs.sha }}
+    - ${{ inputs.okteto_yml }}
+    - ${{ inputs.k8s_deployment_file }}
 branding:
   color: 'green'
   icon: 'layers'

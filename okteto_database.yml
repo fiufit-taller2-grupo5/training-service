@@ -1,0 +1,3 @@
+name: prisma-job-training
+deploy:
+  - kubectl apply -f database/prisma/kubernetes

@@ -24,8 +24,8 @@ jobs:
       - name: Build image and deploy 
         uses: ./.github/actions
         with:
-          tag: okteto.dev/prisma-job:${{ github.sha }}
+          tag: okteto.dev/prisma-job-training:${{ github.sha }}
           file: database/Dockerfile
           sha: ${{ github.sha }}
           okteto_yml: okteto_database.yml
-          k8s_deployment_file: database/prisma/kubernetes/prisma-job.yml
+          k8s_deployment_file: database/prisma/kubernetes/prisma-job-training.yml

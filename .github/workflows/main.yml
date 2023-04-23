@@ -1,4 +1,4 @@
-name: Training - Tests, Linter and Deployment to Okteto
+name: Deployment to Okteto
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ jobs:
 
       - uses: okteto/context@latest
         with:
-          token: ${{ secrets.OKTETO_KEY }}
+          token: ${{ secrets.OKTETO_TOKEN }}
       
       - name: Create devlopment environments namespace
         uses: okteto/namespace@latest
@@ -20,8 +20,10 @@ jobs:
           namespace: prod-szwtomas
       
       - name: Build image and deploy 
-        uses: ./.github/actions/build-and-deploy
+        uses: ./.github/actions
         with:
-          tag: okteto.dev/training-service:latest
-          file: dev.Dockerfile
-
+          tag: okteto.dev/training-service:${{ github.sha }}
+          file: Dockerfile
+          sha: ${{ github.sha }}
+          okteto_yml: okteto_service.yml
+          k8s_deployment_file: kubernetes/deployment.yml
