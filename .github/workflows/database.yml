@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - "database/prima/**"
+      - "database/prisma/**"
 jobs:
   okteto-deployment:
     runs-on: ubuntu-latest
