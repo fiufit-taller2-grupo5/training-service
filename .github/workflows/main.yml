@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions
         with:
           tag: okteto.dev/training-service:${{ github.sha }}
-          file: Dockerfile
+          file: dev.Dockerfile
           sha: ${{ github.sha }}
           okteto_yml: okteto_service.yml
           k8s_deployment_file: kubernetes/deployment.yml
