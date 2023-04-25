@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Step 1: Execute docker compose up for running the db
-# docker compose up -d
+docker compose up --build -d
 
 # Step 2: Wait for the database to be ready
 container_name="postgres-service"  # Replace with the name of your PostgreSQL container
@@ -13,7 +13,7 @@ db_password="12345678"
 db_name="postgres"
 
 echo "Waiting for database to be ready..."
-while ! sudo docker exec -e PGPASSWORD="$db_password" -it "$container_name" psql -h "$db_host" -p "$db_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" > /dev/null 2>&1; do
+while ! docker exec -e PGPASSWORD="$db_password" -it "$container_name" psql -h "$db_host" -p "$db_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" > /dev/null 2>&1; do
   sleep 1
 done
 echo "Database is ready."
@@ -25,9 +25,9 @@ echo "DATABASE_URL=postgresql://${db_user}:${db_password}@${db_host}:${db_host_m
 
 # Step 3: Execute yarn and npx prisma db push
 cd ../training-service/database/prisma
-yarn && npx prisma db push
+npm i && npx prisma db push
 
 # Step 4: Stop the database
-cd ../../development-setup
-# docker compose down
+cd ../../../development-setup
+docker compose down
 echo "Database stopped. Update successful."
