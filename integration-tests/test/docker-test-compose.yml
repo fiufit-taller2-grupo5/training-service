@@ -1,0 +1,78 @@
+# version: '3.9'
+
+# networks:
+#   backoffice_network:
+
+# services:
+#   training-service:
+#     build:
+#       context: ../training-service
+#       dockerfile: dev.Dockerfile
+#     image: training-service-dev
+#     volumes:
+#       - ../training-service/src:/app/src
+#     networks:
+#       - backoffice_network
+#     depends_on:
+#       - postgres-service-test
+
+#   user-service:
+#     build:
+#       context: ../user-service
+#       dockerfile: Dockerfile
+#     image: user-service-dev
+#     ports:
+#       - "3002:80"
+#     #volumes:
+#     # - ../user-service/src:/app/src
+#     networks:
+#       - backoffice_network
+#     depends_on:
+#       - postgres-service-test
+
+#   admin-frontend:
+#     build:
+#       context: ../web-app
+#       dockerfile: dev.Dockerfile
+#     ports:
+#       - "3001:80"
+#     image: admin-frontend-dev
+#     volumes:
+#       - ../web-app/src:/app/src
+#       - ../web-app/index.html:/app/index.html
+#       - ../web-app/public:/app/public
+#       - ../web-app/vite.config.ts:/app/vite.config.ts
+#     networks:
+#       - backoffice_network
+
+#   api-gateway:
+#     build:
+#       context: ../api-gateway
+#       dockerfile: Dockerfile
+#     image: api-gateway-express-dev
+#     environment:
+#       - DEBUG=true
+#     ports:
+#       - "3000:80"
+#     volumes:
+#       - ../api-gateway/src:/app/src
+#     networks:
+#       - backoffice_network
+#     depends_on:
+#       - training-service
+
+#   postgres-service-test:
+#     container_name: postgres-service-test
+#     image: postgres:15.2
+#     environment:
+#       - POSTGRES_USER=postgres
+#       - POSTGRES_PASSWORD=12345678
+#       - POSTGRES_DB=postgres-test
+#     ports:
+#       - "5435:5432"
+#     networks:
+#       - backoffice_network
+
+# volumes:
+
+
