@@ -6,18 +6,16 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "typescript", "typescriptreact"],
   "files.eol": "\n",
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "none",
   "python.testing.pytestArgs": ["tests"],
   "python.testing.unittestEnabled": false,
   "python.testing.nosetestsEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  }
 }
-
