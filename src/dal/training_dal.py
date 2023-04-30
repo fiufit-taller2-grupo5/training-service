@@ -14,6 +14,20 @@ class TrainingDal:
             return session.query(Training).filter(
                 Training.id == training_id).first()
 
-    def get_all_trainings(self) -> List[Training] | None:
+    def get_trainings(self, training_type: str | None, difficulty: str | None) -> List[Training] | None:
         with self.Session() as session:
-            return session.query(Training).all()
+            # return session.query(Training).all()
+            query = session.query(Training)
+            if training_type is not None:
+                query = query.filter(Training.type == training_type)
+            if difficulty is not None:
+                query = query.filter(Training.difficulty == difficulty)
+
+            return query.all()
+
+    def add_training(self, training: Training):
+        with self.Session() as session:
+            session.add(training)
+            session.commit()
+            session.refresh(training)
+            return training

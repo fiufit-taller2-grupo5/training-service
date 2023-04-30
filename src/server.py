@@ -15,7 +15,7 @@ print("Hello form root")
 
 @app.get("/")
 def index():
-    return {"data": "root test"}
+    return {"data": "test"}
 
 
 @app.get("/health")

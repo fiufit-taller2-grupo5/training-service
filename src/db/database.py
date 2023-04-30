@@ -12,7 +12,8 @@ uri = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 print(f"Connecting to {uri}")
 
 engine = create_engine(
-    uri, connect_args={"options": f"-csearch_path={schema}"})
+    uri, connect_args={"options": f"-csearch_path={schema}"}
+)
 
 print("Conected to database")
 
