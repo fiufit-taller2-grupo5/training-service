@@ -28,15 +28,15 @@ model PlanReview {
 }
 
 model TrainingPlan {
-  id            Int    @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   title         String
-  description   String
-  multimedia    String
+  description   String?
+  multimedia    String?
   state         String
-  difficulty    Int
-  type          String
-  trainer_id    Int
-  multimedia_id Int
+  difficulty    Int?
+  type          String?
+  trainer_id    Int?
+  multimedia_id Int?
 
   @@schema("training-service")
 }
