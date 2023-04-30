@@ -16,7 +16,6 @@ class TrainingDal:
 
     def get_trainings(self, training_type: str | None, difficulty: str | None) -> List[Training] | None:
         with self.Session() as session:
-            # return session.query(Training).all()
             query = session.query(Training)
             if training_type is not None:
                 query = query.filter(Training.type == training_type)
