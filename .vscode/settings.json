@@ -15,6 +15,7 @@
   "python.testing.unittestEnabled": false,
   "python.testing.nosetestsEnabled": false,
   "python.testing.pytestEnabled": true,
+  "python.formatting.autopep8Args": ["--max-line-length", "150", "--experimental"],
   "[python]": {
     "editor.defaultFormatter": "ms-python.autopep8"
   }
