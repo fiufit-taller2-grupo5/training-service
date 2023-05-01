@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_all_trainigs(training_type: str = None, difficulty: int = None):
+async def get_all_trainigs(training_type: str = None, difficulty: int = None):
     result = training_dal.get_trainings(training_type, difficulty)
     if result is None:
         return JSONResponse(
@@ -20,7 +20,7 @@ def get_all_trainigs(training_type: str = None, difficulty: int = None):
 
 
 @router.get("/{training_id}")
-def get_training_by_id(training_id):
+async def get_training_by_id(training_id):
     result = training_dal.get_training_by_id(training_id)
     if result is None:
         return JSONResponse(
@@ -35,16 +35,14 @@ def get_training_by_id(training_id):
 
 
 @router.post("/")
-def add_training(training_request: TrainingRequest):
+async def add_training(training_request: TrainingRequest):
     training = Training(
         title=training_request.title,
         description=training_request.description,
-        multimedia=training_request.multimedia,
         state=training_request.state,
         difficulty=training_request.difficulty,
         type=training_request.type,
-        trainer_id=training_request.trainer_id,
-        multimedia_id=training_request.multimedia_id
+        trainerId=training_request.trainerId,
     )
     result = training_dal.add_training(training)
     return JSONResponse(

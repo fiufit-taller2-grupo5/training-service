@@ -4,10 +4,12 @@ import os
 
 
 host = "localhost"
-if os.getenv("ENVIRONMENT") is not None and os.getenv("ENVIRONMENT") == "production":
-    host = "postgres"
-
 port = "8888"
+if os.getenv("ENVIRONMENT") is not None and os.getenv("ENVIRONMENT") == "production":
+    host = "postgres-service"
+    port = "5432"
+
+
 db_name = "postgres"
 schema = "training-service"
 user = "postgres"

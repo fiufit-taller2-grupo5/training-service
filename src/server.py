@@ -14,14 +14,10 @@ print("Hello form root")
 
 
 @app.get("/")
-def index():
+async def index():
     return {"data": "test"}
 
 
 @app.get("/health")
-def health_check():
+async def health_check():
     return {"status": "ok"}
-
-
-if __name__ == "__main__":
-    uvicorn.run(app)
