@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from controllers.trainings_controller import router as training_router
-import uvicorn
 
 
 def init_routers(app):
