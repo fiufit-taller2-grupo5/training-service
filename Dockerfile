@@ -10,4 +10,6 @@ COPY ./src /app/
 
 ENV ENVIRONMENT=production
 
-CMD ["uvicorn", "server:app", "--port", "80"]
+EXPOSE 80
+
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "80"]
