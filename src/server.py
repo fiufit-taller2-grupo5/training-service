@@ -9,7 +9,6 @@ def init_routers(app):
 app = FastAPI()
 
 init_routers(app)
-print("Hello form root")
 
 
 @app.get("/")
@@ -20,3 +19,5 @@ async def index():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+

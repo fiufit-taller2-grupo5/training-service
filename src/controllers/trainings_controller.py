@@ -1,6 +1,6 @@
 from db.database import training_dal
 from model.training import Training
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 from model.training_request import TrainingRequest
 
@@ -8,14 +8,17 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_all_trainigs(training_type: str = None, difficulty: int = None):
+async def get_all_trainigs(response: Response, training_type: str = None, difficulty: int = None):
     result = training_dal.get_trainings(training_type, difficulty)
     if result is None:
         return JSONResponse(
             status_code=404,
             content={"message": "No trainings found"}
         )
-
+    
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    response.headers["X-Total-Count"] = str(len(result))
+    
     return result
 
 
