@@ -7,52 +7,52 @@ networks:
 services:
   training-service:
     build:
-      context: ../training-service
+      context: ../../../training-service
       dockerfile: Dockerfile
     image: training-service-dev
-    volumes:
-      - ../training-service/src:/app/src
+    # volumes:
+    # - ../../../training-service/src:/app/src
     networks:
       - backoffice_network
 
   user-service:
     build:
-      context: ../user-service
+      context: ../../../user-service
       dockerfile: Dockerfile
     image: user-service-dev
     ports:
       - "3002:80"
     #volumes:
-    # - ../user-service/src:/app/src
+    # - ../../../user-service/src:/app/src
     networks:
       - backoffice_network
 
   admin-frontend:
     build:
-      context: ../web-app
+      context: ../../../web-app
       dockerfile: dev.Dockerfile
     ports:
       - "3001:80"
     image: admin-frontend-dev
-    volumes:
-      - ../web-app/src:/app/src
-      - ../web-app/index.html:/app/index.html
-      - ../web-app/public:/app/public
-      - ../web-app/vite.config.ts:/app/vite.config.ts
+    # volumes:
+    # - ../../../web-app/src:/app/src
+    # - ../../../web-app/index.html:/app/index.html
+    # - ../../../web-app/public:/app/public
+    # - ../../../web-app/vite.config.ts:/app/vite.config.ts
     networks:
       - backoffice_network
 
   api-gateway:
     build:
-      context: ../api-gateway
+      context: ../../../api-gateway
       dockerfile: Dockerfile
     image: api-gateway-express-dev
     environment:
       - DEBUG=true
     ports:
       - "3000:80"
-    volumes:
-      - ../api-gateway/src:/app/src
+    # volumes:
+    #   - ../../../api-gateway/src:/app/src
     networks:
       - backoffice_network
     depends_on:
@@ -64,15 +64,11 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=12345678
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=postgres-test
     ports:
       - "5434:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
     networks:
       - backoffice_network
 
-volumes:
-  postgres-data:
-
-
+# volumes:
+#   postgres-data:
