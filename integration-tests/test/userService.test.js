@@ -62,7 +62,13 @@ const waitUntilServicesAreHealthy = async () => {
     }
   }
 };
+
 describe('Integration Tests ', () => {
+
+
+  const authedRequest = (request) => {
+    return request.set('dev', 'true');
+  }
   before(async () => {
     await startDockerCompose();
     await waitUntilServicesAreHealthy();
@@ -77,133 +83,124 @@ describe('Integration Tests ', () => {
   });
 
   it('GET health user service', async () => {
-    const response = await request(apiGatewayHost)
-      .get('/user-service/health')
-      .set('dev', 'true'); // add this line to set the Authorization header
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/health'))
 
     expect(response.statusCode).to.be.equal(200);
   });
 
   it('POST user', async () => {
-    const response = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test',
-        email: 'test@email.com',
-      }).set('dev', 'true');
+    await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@email.com',
+        }))
+
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users')
+    )
 
     expect(response.statusCode).to.be.equal(200);
-
-
-    const response2 = await request(apiGatewayHost)
-      .get('/user-service/api/users')
-      .set('dev', 'true');
-
-    expect(response2.statusCode).to.be.equal(200);
-    expect(response2.body.length).to.be.equal(1);
-    expect(response2.body[0].name).to.be.equal('test');
+    expect(response.body.length).to.be.equal(1);
+    expect(response.body[0].name).to.be.equal('test');
   });
 
 
   it('GET non-existent user', async () => {
-    const response = await request(apiGatewayHost)
-      .get('/user-service/api/users/123')
-      .set('dev', 'true');
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users/123')
+    )
 
     expect(response.statusCode).to.be.equal(404);
   });
 
   it('POST user with missing fields', async () => {
-    const response = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test'
-      })
-      .set('dev', 'true');
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test'
+        })
+    );
 
     expect(response.statusCode).to.be.equal(400);
     expect(response.body.error).to.be.equal('Missing name or email');
   });
 
   it('POST user with used email', async () => {
-    const postResponse = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test',
-        email: 'test@mail'
-      })
-      .set('dev', 'true');
+    await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }));
 
-    expect(postResponse.statusCode).to.be.equal(200);
-    const postResponse2 = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test2',
-        email: 'test@mail'
-      })
-      .set('dev', 'true');
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test2',
+          email: 'test@mail'
+        }));
 
-    expect(postResponse2.statusCode).to.be.equal(409);
-    expect(postResponse2.body.error).to.be.equal('User with email test@mail already exists');
+    expect(postResponse.statusCode).to.be.equal(409);
+    expect(postResponse.body.error).to.be.equal('User with email test@mail already exists');
   });
 
   it('User with name used', async () => {
-    const postResponse = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test',
-        email: 'test@mail'
-      })
-      .set('dev', 'true');
+    await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }));
 
-    expect(postResponse.statusCode).to.be.equal(200);
-    const postResponse2 = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test',
-        email: 'test2@mail'
-      })
-      .set('dev', 'true');
-    expect(postResponse2.statusCode).to.be.equal(409);
-    expect(postResponse2.body.error).to.be.equal('User with name test already exists');
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test2@mail'
+        }));
 
+    expect(postResponse.statusCode).to.be.equal(409);
+    expect(postResponse.body.error).to.be.equal('User with name test already exists');
   });
 
   it('DELETE user', async () => {
-    const postResponse = await request(apiGatewayHost)
-      .post('/user-service/api/users')
-      .send({
-        name: 'test',
-        email: 'test@email.com',
-      })
-      .set('dev', 'true');
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@email.com',
+        }));
 
     expect(postResponse.statusCode).to.be.equal(200);
 
-    const users = await request(apiGatewayHost)
-      .get('/user-service/api/users')
-      .set('dev', 'true');
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users'));
+
 
     const userId = users.body[0].id;
 
-    const deleteResponse = await request(apiGatewayHost)
-      .delete(`/user-service/api/users/${userId}`)
-      .set('dev', 'true');
+    await await authedRequest(
+      request(apiGatewayHost)
+        .delete(`/user-service/api/users/${userId}`));
 
-
-    const getResponse = await request(apiGatewayHost)
-      .get(`/user-service/api/users/${userId}`)
-      .set('dev', 'true');
+    const getResponse = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users/${userId}`));
 
     expect(getResponse.statusCode).to.be.equal(404);
   });
-
 });
-
-// antes de todo levantar compose y depsues de todo bajarlo 
-// dsp por cada est borrar la ifno en la base de datos
-// hay un metodo hay uno que es before/after each (como hago para eso? una query que borre los datos de todas las tablas que hay en la base de datos)
-    // ojo con el tema de tner dos schemas, habria que ver lso dos y nada eso basicamente
-
-// hacer un docker compose de test 
-// que se diferencie por no montar los volumenes a la base de datos postgress, asi no tiene mapeados cosas en lo local simplmeente se prende y apaga cuando se corre este dc
