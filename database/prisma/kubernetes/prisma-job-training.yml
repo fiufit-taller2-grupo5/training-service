@@ -11,5 +11,5 @@ spec:
           command: ["npx", "prisma", "db", "push", "--force-reset"]
           env:
             - name: DATABASE_URL
-              value: "postgresql://postgres:12345678@postgres-service:5432/postgres?schema=public"
+              value: "postgresql://postgres:12345678@postgres-service:5432/postgres?schema=training-service"
       restartPolicy: Never
