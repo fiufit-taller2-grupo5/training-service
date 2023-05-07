@@ -4,13 +4,7 @@ const { startDockerCompose, stopDockerCompose } = require('./dockerComposeManage
 const apiGatewayHost = 'http://localhost:3000';
 
 const { execSync } = require('child_process');
-const { describe, beforeEach, afterEach, it, beforeAll, afterAll } = require('mocha');
-
-const axios = require('axios');
-
-
-const waitOn = require('wait-on');
-
+const { describe, before, after } = require('mocha');
 describe('Integration Tests ', () => {
   // before(async () => {
   //   await startDockerCompose();
@@ -24,37 +18,37 @@ describe('Integration Tests ', () => {
   // });
 
 
-  before(async () => {
-    // Execute docker-compose up --build before all tests
-    execSync('sudo docker-compose up --build -d', { stdio: 'inherit' });
-    // Wait until the containers are ready
-    // Start the containers in detached mode
-    execSync('sudo docker-compose up --build -d', { stdio: 'inherit' });
+  // before(async () => {
+  //   // Execute docker-compose up --build before all tests
+  //   execSync('docker compose up --build -d', { stdio: 'inherit' });
+  //   // Wait until the containers are ready
+  //   // Start the containers in detached mode
+  //   //execSync('docker compose up --build -d', { stdio: 'inherit' });
 
-    // Wait until all services are ready
-    let isReady = false;
-    const services = ['training-service', 'user-service', 'admin-frontend', 'api-gateway'];
-    while (!isReady) {
-      try {
-        // Check if all services are running
-        const output = execSync('sudo docker ps', { encoding: 'utf-8' });
-        const isRunning = services.every(service => output.includes(service));
-        if (isRunning) {
-          isReady = true;
-        } else {
-          console.log('Waiting for all services to start...');
-          // Wait for a few seconds before checking again
-          setTimeout(() => { }, 100000);
-        }
-      } catch (err) {
-        // The containers are not ready yet
-        console.log('Waiting for all services to start...');
-        // Wait for a few seconds before checking again
-        setTimeout(() => { }, 100000);
-      }
-    }
-    console.log('All services are ready!');
-  });
+  //   // Wait until all services are ready
+  //   let isReady = false;
+  //   const services = ['training-service', 'user-service', 'admin-frontend', 'api-gateway'];
+  //   while (!isReady) {
+  //     try {
+  //       // Check if all services are running
+  //       const output = execSync('docker ps', { encoding: 'utf-8' });
+  //       const isRunning = services.every(service => output.includes(service));
+  //       if (isRunning) {
+  //         isReady = true;
+  //       } else {
+  //         console.log('Waiting for all services to start...');
+  //         // Wait for a few seconds before checking again
+  //         setTimeout(() => { }, 100000);
+  //       }
+  //     } catch (err) {
+  //       // The containers are not ready yet
+  //       console.log('Waiting for all services to start...');
+  //       // Wait for a few seconds before checking again
+  //       setTimeout(() => { }, 100000);
+  //     }
+  //   }
+  //   console.log('All services are ready!');
+  // });
   // after(async () => {
   //   // Execute docker-compose down after all tests
   //   execSync('sudo docker-compose down', { stdio: 'inherit' });
@@ -94,10 +88,57 @@ describe('Integration Tests ', () => {
   //     .set('dev', 'true');
   // });
 
+  const isServiceHealthy = async (servicePath) => {
+    try {
+      const response = await request(apiGatewayHost)
+        .get(servicePath)
+        .set('dev', 'true');
+      return response.statusCode === 200;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Function to wait until all services are healthy
+  const waitUntilServicesAreHealthy = async () => {
+    const serviceHealthPaths = [
+      '/user-service/health',
+      '/training-service/health',
+      '/health',
+    ];
+
+    let allServicesHealthy = false;
+
+    while (!allServicesHealthy) {
+      console.log('Checking services health...');
+      const healthChecks = await Promise.all(
+        serviceHealthPaths.map((path) => isServiceHealthy(path))
+      );
+
+      console.log('Health checks: ', healthChecks);
+
+      allServicesHealthy = healthChecks.every((check) => check);
+
+      if (!allServicesHealthy) {
+        console.log('Waiting for all services to be healthy...');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+  };
+
+  before(async () => {
+    await startDockerCompose();
+    await waitUntilServicesAreHealthy();
+  });
+
+
+  after(() => {
+    return stopDockerCompose();
+  });
 
   it('GET health user service', async () => {
     const response = await request(apiGatewayHost)
-      .get('/user-service/health-check')
+      .get('/user-service/health')
       .set('dev', 'true'); // add this line to set the Authorization header
 
     expect(response.statusCode).to.be.equal(200);

@@ -9,6 +9,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "chai": "^4.3.7",
+    "docker-compose": "^0.24.0",
     "mocha": "^10.2.0",
     "supertest": "^6.3.3",
     "wait-on": "^7.0.1"

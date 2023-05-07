@@ -1,33 +1,45 @@
-const { promisify } = require('util');
-const exec = promisify(require('child_process').exec);
-
-const path = require('path');
+const path = require("path");
 const compose = require('docker-compose');
 
-const dockerComposeFilePath = path.resolve(__dirname, './docker-test-compose.yml');
+const composeFilePath = path.join(__dirname);
 
-const { spawnSync } = require('child_process');
-// const path = require('path');
-
+console.log(composeFilePath);
 async function startDockerCompose() {
-    const dirPath = path.dirname(dockerComposeFilePath);
-    const childProcess = spawnSync('sudo', ['docker-compose', 'up', '--build', '--abort-on-container-exit'], { stdio: 'inherit', cwd: dirPath });
-    if (childProcess.status !== 0) {
-        throw new Error(`docker-compose failed with exit code ${childProcess.status}`);
-    }
-    console.log('docker-compose completed successfully!');
+    console.log("building images");
+    return compose
+        .buildAll({
+            cwd: composeFilePath,
+            log: true,
+            config: "docker-test-compose.yml"
+        })
+        .then(
+            () => {
+                console.log("done building images");
+                console.log("starting containers");
+                return compose.upAll({
+                    cwd: composeFilePath,
+                    log: true,
+                    config: "docker-test-compose.yml"
+                });
+            },
+            err => {
+                console.log("something went wrong:", err.message);
+            }
+        );
 }
-
-
-
 async function stopDockerCompose() {
-    try {
-        await exec('sudo docker-compose down', { cwd: path.dirname(dockerComposeFilePath) });
-        console.log('Docker Compose stopped successfully!');
-    } catch (err) {
-        console.error("Error Stopping Docker Compose: ", err.message);
-        process.exit(1);
-    }
+    console.log("stopping containers");
+    return compose
+        .down({ cwd: composeFilePath, log: true, config: "docker-test-compose.yml" })
+        .then(
+            () => {
+                console.log("done stopping containers");
+            },
+            (err) => {
+                console.log("something went wrong:", err.message);
+            }
+        );
 }
+
 
 module.exports = { startDockerCompose, stopDockerCompose };
