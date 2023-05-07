@@ -15,7 +15,7 @@ services:
     networks:
       - test_network
     depends_on:
-      - postgres-service-test
+      - postgres-service
 
   user-service:
     build:
@@ -29,7 +29,7 @@ services:
     networks:
       - test_network
     depends_on:
-      - postgres-service-test
+      - postgres-service
 
   admin-frontend:
     build:
@@ -62,14 +62,14 @@ services:
     depends_on:
       - training-service
 
-  postgres-service-test:
-    container_name: postgres-service-test
+  postgres-service:
+    container_name: postgres-service
     image: postgres:15.2
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=12345678
-      - POSTGRES_DB=postgres-test
+      - POSTGRES_DB=postgres
     ports:
-      - "5435:5432"
+      - "5434:5432"
     networks:
       - test_network

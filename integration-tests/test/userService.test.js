@@ -1,9 +1,31 @@
 const request = require('supertest');
 const expect = require('chai').expect;
+const { createConnection } = require('typeorm');
 const { startDockerCompose, stopDockerCompose } = require('./dockerComposeManager');
-const { describe, before, after } = require('mocha');
+const { describe, before, after, beforeEach } = require('mocha');
 
 const apiGatewayHost = 'http://localhost:3000';
+
+async function truncateTables() {
+  const connection = await createConnection({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5434,
+    username: 'postgres',
+    password: '12345678',
+    database: 'postgres',
+    schema: 'user-service',
+    synchronize: false,
+  });
+
+  const tables = ['User'];
+
+  for (const table of tables) {
+    await connection.query(`TRUNCATE TABLE "user-service"."${table}" CASCADE`);
+  }
+
+  await connection.close();
+}
 
 const isServiceHealthy = async (servicePath) => {
   try {
@@ -50,6 +72,10 @@ describe('Integration Tests ', () => {
     return stopDockerCompose();
   });
 
+  afterEach(async () => {
+    await truncateTables();
+  });
+
   it('GET health user service', async () => {
     const response = await request(apiGatewayHost)
       .get('/user-service/health')
@@ -64,7 +90,7 @@ describe('Integration Tests ', () => {
       .send({
         name: 'test',
         email: 'test@email.com',
-      }).set('dev', 'true');;
+      }).set('dev', 'true');
 
     expect(response.statusCode).to.be.equal(200);
 
