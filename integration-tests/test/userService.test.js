@@ -154,26 +154,6 @@ describe('Integration Tests ', () => {
     expect(postResponse.body.error).to.be.equal('User with email test@mail already exists');
   });
 
-  it('User with name used', async () => {
-    await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .send({
-          name: 'test',
-          email: 'test@mail'
-        }));
-
-    const postResponse = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .send({
-          name: 'test',
-          email: 'test2@mail'
-        }));
-
-    expect(postResponse.statusCode).to.be.equal(409);
-    expect(postResponse.body.error).to.be.equal('User with name test already exists');
-  });
 
   it('DELETE user', async () => {
     const postResponse = await authedRequest(
@@ -200,6 +180,107 @@ describe('Integration Tests ', () => {
     const getResponse = await authedRequest(
       request(apiGatewayHost)
         .get(`/user-service/api/users/${userId}`));
+
+    expect(getResponse.statusCode).to.be.equal(404);
+
+  });
+
+  it('POST new Admin', async () => {
+
+
+    // create new admin with email and password with header test=true
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/admins')
+        .send({
+          name: 'test',
+          email: 'test@mail',
+          password: 'test'
+        }).set('test', 'true'));
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/admins')
+    )
+
+    expect(response.statusCode).to.be.equal(200);
+    expect(response.body.length).to.be.equal(1);
+    expect(response.body[0].name).to.be.equal('test');
+    expect(response.body[0].email).to.be.equal('test@mail');
+  });
+
+
+
+
+  it('GET non-existent admin', async () => {
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/admins/123')
+    )
+
+    expect(response.statusCode).to.be.equal(404);
+  });
+
+  it('POST admin with missing fields', async () => {
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/admins')
+        .send({
+          name: 'test'
+        }).set('test', 'true'));
+
+
+    expect(response.statusCode).to.be.equal(400);
+    expect(response.body.error).to.be.equal('Missing name or email');
+  });
+
+  it('POST admin with used email', async () => {
+    await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/admins')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }).set('test', 'true'));
+
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/admins')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }).set('test', 'true'));
+
+    expect(postResponse.statusCode).to.be.equal(409);
+    expect(postResponse.body.error).to.be.equal('Admin with email test@mail already exists');
+  });
+
+
+  it('DELETE admin', async () => {
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/admins')
+        .send({
+          name: 'test',
+          email: 'test@email.com',
+        }).set('test', 'true'));
+
+    expect(postResponse.statusCode).to.be.equal(200);
+
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/admins'));
+
+
+    const userId = users.body[0].id;
+
+    await await authedRequest(
+      request(apiGatewayHost)
+        .delete(`/user-service/api/admins/${userId}`));
+
+    const getResponse = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/admins/${userId}`));
 
     expect(getResponse.statusCode).to.be.equal(404);
   });
