@@ -284,4 +284,133 @@ describe('Integration Tests ', () => {
 
     expect(getResponse.statusCode).to.be.equal(404);
   });
+
+  // change metadata in user 
+  it('PUT user', async () => {
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }
+        ));
+
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users'));
+
+    const userId = users.body[0].id;
+
+    const putResponse = await authedRequest(
+      request(apiGatewayHost)
+        .put(`/user-service/api/users/${userId}/metadata`)
+        .send({
+          name: 'test2',
+          email: 'test2@mail',
+          location: 'test'
+        }));
+
+    const getResponse = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users/${userId}/metadata`));
+
+    expect(getResponse.statusCode).to.be.equal(200);
+    expect(getResponse.body.location).to.be.equal('test');
+  });
+
+  it('PUT user with invalid id', async () => {
+    const putResponse = await authedRequest(
+      request(apiGatewayHost)
+        .put(`/user-service/api/users/123/metadata`)
+        .send({
+          name: 'test2',
+          email: 'test2@mail',
+          location: 'test'
+        }));
+    expect(putResponse.statusCode).to.be.equal(409);
+    expect(putResponse.body.error).to.be.equal('User with id 123 not found');
+  });
+
+  it('PUT user with invalid metadata, location missing', async () => {
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }
+        ));
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users'));
+
+    const userId = users.body[0].id;
+    const putResponse = await authedRequest(
+      request(apiGatewayHost)
+        .put(`/user-service/api/users/${userId}/metadata`)
+        .send({
+          name: 'test2',
+          email: 'test2@mail'
+        }));
+
+    expect(putResponse.statusCode).to.be.equal(400);
+    expect(putResponse.body.error).to.be.equal('Missing location');
+  });
+
+  it('GET user with entire information', async () => {
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }
+        ));
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users'));
+
+    const userId = users.body[0].id;
+    const putResponse = await authedRequest(
+      request(apiGatewayHost)
+        .put(`/user-service/api/users/${userId}/metadata`)
+        .send({
+          location: 'test'
+        }));
+
+    const getResponse = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users/${userId}`));
+
+    expect(getResponse.statusCode).to.be.equal(200);
+    expect(getResponse.body.name).to.be.equal('test');
+    expect(getResponse.body.email).to.be.equal('test@mail');
+    expect(getResponse.body.UserMetadata.location).to.be.equal('test');
+
+  });
+
+  it('GET user with metadata in null', async () => {
+    const postResponse = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test',
+          email: 'test@mail'
+        }
+        ));
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get('/user-service/api/users'));
+
+    const userId = users.body[0].id;
+    const getResponse = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users/${userId}`));
+
+    expect(getResponse.statusCode).to.be.equal(200);
+    expect(getResponse.body.name).to.be.equal('test');
+    expect(getResponse.body.email).to.be.equal('test@mail');
+    expect(getResponse.body.UserMetadata).to.be.equal(null);
+  });
 });
