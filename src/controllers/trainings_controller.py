@@ -45,7 +45,21 @@ async def add_training_to_favorite(training_id, user_id):
 
     return JSONResponse(
         status_code=200,
-        content=result.as_dict()
+        content=result
+    )
+
+@router.get("/favorites/{user_id}")
+async def get_favorite_trainings(user_id):
+    result = training_dal.get_favorite_trainings(user_id)
+    if result is None:
+        return JSONResponse(
+            status_code=404,
+            content={"message": f"User with id {user_id} does not exist"}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content=result
     )
 
 @router.post("/")

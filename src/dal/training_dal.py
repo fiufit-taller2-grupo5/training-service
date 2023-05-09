@@ -40,3 +40,9 @@ class TrainingDal:
             session.commit()
             session.refresh(user_favorite_training_plan)
             return user_favorite_training_plan
+
+    def get_favorite_trainings(self, user_id: int):
+        with self.Session() as session:
+            trainings = session.query(Training).join(UserFavoriteTrainingPlan, UserFavoriteTrainingPlan.trainingPlanId == Training.id) \
+                .filter(UserFavoriteTrainingPlan.userId == user_id).all()
+            return [training.as_dict() for training in trainings]
