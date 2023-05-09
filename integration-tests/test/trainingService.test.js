@@ -14,11 +14,11 @@ async function truncateTables() {
         username: 'postgres',
         password: '12345678',
         database: 'postgres',
-        schema: 'traininf-service',
+        schema: 'training-service',
         synchronize: false,
     });
 
-    const tables = ['Training'];
+    const tables = ['TrainingPlan'];
 
     for (const table of tables) {
         await connection.query(`TRUNCATE TABLE "training-service"."${table}" CASCADE`);
@@ -64,7 +64,29 @@ const waitUntilServicesAreHealthy = async () => {
 };
 
 describe('Integration Tests ', () => {
-    it('should pass', () => {
-        expect(true).to.be.true;
+
+
+    const authedRequest = (request) => {
+        return request.set('dev', 'true');
+    }
+    before(async () => {
+        await startDockerCompose();
+        await waitUntilServicesAreHealthy();
+    });
+
+    after(() => {
+        return stopDockerCompose();
+    });
+
+    afterEach(async () => {
+        await truncateTables();
+    });
+
+    it('GET health training service', async () => {
+        const response = await authedRequest(
+            request(apiGatewayHost)
+                .get('/training-service/health'))
+
+        expect(response.statusCode).to.be.equal(200);
     });
 });
