@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: training-service
-          image: registry.cloud.okteto.net/prod-szwtomas/training-service:v10
+          image: registry.cloud.okteto.net/prod-szwtomas/training-service:latest
           ports:
             - containerPort: 80
       # This means that, if the container exits for any reason, it should restart again. It is the default value
