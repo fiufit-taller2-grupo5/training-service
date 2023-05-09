@@ -213,7 +213,7 @@ describe('Integration Tests ', () => {
 
         const favorite = await authedRequest(
             request(apiGatewayHost)
-                .get(`/training-service/api/trainings/${trainingId}/favorite/${userId}`)
+                .post(`/training-service/api/trainings/${trainingId}/favorite/${userId}`)
                 .set('dev', 'true')
         );
         expect(favorite.statusCode).to.be.equal(200);
@@ -263,12 +263,12 @@ describe('Integration Tests ', () => {
 
         await authedRequest(
             request(apiGatewayHost)
-                .get(`/training-service/api/trainings/${trainingId1}/favorite/${userId}`)
+                .post(`/training-service/api/trainings/${trainingId1}/favorite/${userId}`)
                 .set('dev', 'true')
         );
         await authedRequest(
             request(apiGatewayHost)
-                .get(`/training-service/api/trainings/${trainingId2}/favorite/${userId}`)
+                .post(`/training-service/api/trainings/${trainingId2}/favorite/${userId}`)
                 .set('dev', 'true')
         );
         const favorites = await authedRequest(
