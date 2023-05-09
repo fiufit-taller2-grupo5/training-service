@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from model.training import Training
 from typing import List
+from model.training import UserFavoriteTrainingPlan
 
 
 class TrainingDal:
@@ -30,3 +31,12 @@ class TrainingDal:
             session.commit()
             session.refresh(training)
             return training
+
+    def add_training_to_favorite(self, training_id: int, user_id: int):
+        with self.Session() as session:
+            user_favorite_training_plan = UserFavoriteTrainingPlan(
+                userId=user_id, trainingPlanId=training_id)
+            session.add(user_favorite_training_plan)
+            session.commit()
+            session.refresh(user_favorite_training_plan)
+            return user_favorite_training_plan

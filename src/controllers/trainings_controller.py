@@ -5,8 +5,6 @@ from fastapi.responses import JSONResponse
 from model.training_request import TrainingRequest
 
 router = APIRouter()
-
-
 @router.get("/")
 async def get_all_trainigs(response: Response, training_type: str = None, difficulty: int = None):
     result = training_dal.get_trainings(training_type, difficulty)
@@ -36,6 +34,19 @@ async def get_training_by_id(training_id):
         content=result.as_dict()
     )
 
+@router.get("/{training_id}/favorite/{user_id}")
+async def add_training_to_favorite(training_id, user_id):
+    result = training_dal.add_training_to_favorite(training_id, user_id)
+    if result is None:
+        return JSONResponse(
+            status_code=404,
+            content={"message": f"Training with id {training_id} does not exist"}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content=result.as_dict()
+    )
 
 @router.post("/")
 async def add_training(training_request: TrainingRequest):

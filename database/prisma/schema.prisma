@@ -11,16 +11,17 @@ datasource db {
 }
 
 model TrainingPlan {
-  id             Int          @id @default(autoincrement())
-  title          String
-  description    String?
-  multimedia     Multimedia[]
-  state          String
-  difficulty     Int?
-  type           String
-  trainerId      Int?
-  planReviews    PlanReview[]
-  trainingTypeId Int?
+  id                       Int                        @id @default(autoincrement())
+  title                    String
+  description              String?
+  multimedia               Multimedia[]
+  state                    String
+  difficulty               Int?
+  type                     String
+  trainerId                Int?
+  planReviews              PlanReview[]
+  trainingTypeId           Int?
+  UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
 
   @@schema("training-service")
 }
@@ -32,6 +33,15 @@ model Multimedia {
   trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
   trainingPlanId Int
 
+  @@schema("training-service")
+}
+
+model UserFavoriteTrainingPlan {
+  userId         Int
+  trainingPlanId Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+
+  @@id([userId, trainingPlanId])
   @@schema("training-service")
 }
 

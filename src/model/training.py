@@ -24,3 +24,14 @@ class Training(Base):
             "type": self.type,
             "trainerId": self.trainerId,
         }
+
+class UserFavoriteTrainingPlan(Base):
+    __tablename__ = "UserFavoriteTrainingPlan"
+
+    userId = Column(Integer, primary_key=True)
+    trainingPlanId = Column(Integer, primary_key=True)
+    def as_dict(self):
+        return {
+            "userId": self.userId,
+            "trainingPlanId": self.trainingPlanId,
+        }
