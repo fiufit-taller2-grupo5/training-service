@@ -38,7 +38,7 @@ async def get_training_by_id(training_id):
     )
 
 
-@router.get("/{training_id}/favorite/{user_id}")
+@router.post("/{training_id}/favorite/{user_id}")
 async def add_training_to_favorite(training_id, user_id):
     try:
         result = training_dal.add_training_to_favorite(training_id, user_id)
