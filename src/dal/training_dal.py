@@ -1,7 +1,9 @@
+from sqlite3 import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from model.training import Training
 from typing import List
 from model.training import UserFavoriteTrainingPlan
+from fastapi import HTTPException
 
 
 class TrainingDal:
@@ -34,15 +36,27 @@ class TrainingDal:
 
     def add_training_to_favorite(self, training_id: int, user_id: int):
         with self.Session() as session:
-            user_favorite_training_plan = UserFavoriteTrainingPlan(
-                userId=user_id, trainingPlanId=training_id)
-            session.add(user_favorite_training_plan)
-            session.commit()
-            session.refresh(user_favorite_training_plan)
-            return user_favorite_training_plan
+            try:
+                user_favorite_training_plan = UserFavoriteTrainingPlan(
+                    userId=user_id, trainingPlanId=training_id)
+                session.add(user_favorite_training_plan)
+                session.commit()
+                session.refresh(user_favorite_training_plan)
+                return user_favorite_training_plan
+            except IntegrityError:
+                session.rollback()
+                raise HTTPException(
+                    status_code=404, detail="User or training not found")
+            except:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail="Something went wrong")
 
     def get_favorite_trainings(self, user_id: int):
         with self.Session() as session:
             trainings = session.query(Training).join(UserFavoriteTrainingPlan, UserFavoriteTrainingPlan.trainingPlanId == Training.id) \
                 .filter(UserFavoriteTrainingPlan.userId == user_id).all()
+            if not trainings:
+                raise HTTPException(
+                    status_code=404, detail=f"User with id {user_id} does not exist")
             return [training.as_dict() for training in trainings]
