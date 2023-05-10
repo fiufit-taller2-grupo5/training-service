@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO_URLS=("git@github.com:fiufit-taller2-grupo5/mobile-app.git" "git@github.com:fiufit-taller2-grupo5/user-service.git" "git@github.com:fiufit-taller2-grupo5/database-schemas.git" "git@github.com:fiufit-taller2-grupo5/web-app.git" "git@github.com:fiufit-taller2-grupo5/training-service.git" "git@github.com:fiufit-taller2-grupo5/development-setup.git" "git@github.com:fiufit-taller2-grupo5/api-gateway.git")
+REPO_URLS=("git@github.com:fiufit-taller2-grupo5/mobile-app.git" "git@github.com:fiufit-taller2-grupo5/user-service.git" "git@github.com:fiufit-taller2-grupo5/web-app.git" "git@github.com:fiufit-taller2-grupo5/training-service.git" "git@github.com:fiufit-taller2-grupo5/development-setup.git" "git@github.com:fiufit-taller2-grupo5/api-gateway.git" "git@github.com:fiufit-taller2-grupo5/metrics-queue.git" "git@github.com:fiufit-taller2-grupo5/metrics-consumer.git")
 # Get the current directory
 CLONE_DIR=$(pwd)
 
