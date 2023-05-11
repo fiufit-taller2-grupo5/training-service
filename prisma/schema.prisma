@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
   binaryTargets   = ["native"]
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
@@ -10,33 +10,49 @@ datasource db {
   schemas  = ["training-service"]
 }
 
-model Multimedia {
-  id      Int    @id @default(autoincrement())
-  fileUrl String
+model TrainingPlan {
+  id                       Int                        @id @default(autoincrement())
+  title                    String
+  description              String?
+  multimedia               Multimedia[]
+  state                    String
+  difficulty               Int?
+  type                     String
+  trainerId                Int?
+  planReviews              PlanReview[]
+  trainingTypeId           Int?
+  UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
 
+  @@schema("training-service")
+}
+
+model Multimedia {
+  id             Int          @id @default(autoincrement())
+  fileUrl        String
+  type           String
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlanId Int
+
+  @@schema("training-service")
+}
+
+// its a N-N relationship
+model UserFavoriteTrainingPlan {
+  userId         Int
+  trainingPlanId Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+
+  @@id([userId, trainingPlanId])
   @@schema("training-service")
 }
 
 model PlanReview {
-  id      Int     @id @default(autoincrement())
-  user_id Int
-  comment String?
-  score   Int
-  plan_id Int
-
-  @@schema("training-service")
-}
-
-model TrainingPlan {
-  id            Int     @id @default(autoincrement())
-  title         String
-  description   String?
-  multimedia    String?
-  state         String
-  difficulty    Int?
-  type          String?
-  trainer_id    Int?
-  multimedia_id Int?
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  comment        String?
+  score          Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlanId Int
 
   @@schema("training-service")
 }
