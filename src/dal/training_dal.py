@@ -58,5 +58,5 @@ class TrainingDal:
                 .filter(UserFavoriteTrainingPlan.userId == user_id).all()
             if not trainings:
                 raise HTTPException(
-                    status_code=404, detail=f"User with id {user_id} does not exist")
+                    status_code=404, detail=f"User with id {user_id} does not have any favorites")
             return [training.as_dict() for training in trainings]
