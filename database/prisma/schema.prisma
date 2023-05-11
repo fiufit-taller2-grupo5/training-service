@@ -36,7 +36,6 @@ model Multimedia {
   @@schema("training-service")
 }
 
-// its a N-N relationship!
 model UserFavoriteTrainingPlan {
   userId         Int
   trainingPlanId Int
