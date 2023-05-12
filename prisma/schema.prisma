@@ -10,17 +10,38 @@ datasource db {
   schemas  = ["training-service"]
 }
 
+enum TrainingType {
+  Running
+  Swimming
+  Biking
+  Yoga
+  Basketball
+  Football
+  Walking
+  Gymnastics
+  Dancing
+  Hiking
+
+  @@schema("training-service")
+}
+
+enum TrainingPlanState {
+  active
+  blocked
+
+  @@schema("training-service")
+}
+
 model TrainingPlan {
   id                       Int                        @id @default(autoincrement())
   title                    String
   description              String?
-  multimedia               Multimedia[]
-  state                    String
-  difficulty               Int?
-  type                     String
-  trainerId                Int?
+  difficulty               Int
+  trainerId                Int
   planReviews              PlanReview[]
-  trainingTypeId           Int?
+  multimedia               Multimedia[]
+  state                    TrainingPlanState          @default(active)
+  type                     TrainingType
   UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
 
   @@schema("training-service")
@@ -30,13 +51,12 @@ model Multimedia {
   id             Int          @id @default(autoincrement())
   fileUrl        String
   type           String
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
   trainingPlanId Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
 
   @@schema("training-service")
 }
 
-// its a N-N relationship
 model UserFavoriteTrainingPlan {
   userId         Int
   trainingPlanId Int
@@ -51,8 +71,8 @@ model PlanReview {
   userId         Int
   comment        String?
   score          Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
   trainingPlanId Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
 
   @@schema("training-service")
 }

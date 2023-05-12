@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - "database/prisma/**"
+      - "database/**"
+      - "prisma/**"
 jobs:
   okteto-deployment:
     runs-on: ubuntu-latest
@@ -28,4 +29,4 @@ jobs:
           file: database/Dockerfile
           sha: ${{ github.sha }}
           okteto_yml: okteto_database.yml
-          k8s_deployment_file: database/prisma/kubernetes/prisma-job-training.yml
+          k8s_deployment_file: database/prisma-job-training.yml

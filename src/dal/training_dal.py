@@ -4,6 +4,7 @@ from model.training import Training
 from typing import List
 from model.training import UserFavoriteTrainingPlan
 from fastapi import HTTPException
+import requests
 
 
 class TrainingDal:
@@ -28,6 +29,12 @@ class TrainingDal:
             return query.all()
 
     def add_training(self, training: Training):
+        user_service_url = f"http://user-service:80/api/users/{training.trainerId}"
+        response = requests.get(user_service_url)
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=404, detail="User not found")
+
         with self.Session() as session:
             session.add(training)
             session.commit()
