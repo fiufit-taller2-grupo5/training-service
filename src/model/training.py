@@ -23,6 +23,7 @@ class Training(Base):
             "difficulty": self.difficulty,
             "type": self.type,
             "trainerId": self.trainerId,
+            "description": self.description,
         }
 
 class UserFavoriteTrainingPlan(Base):
