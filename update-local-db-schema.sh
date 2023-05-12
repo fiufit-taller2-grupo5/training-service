@@ -49,22 +49,28 @@ db_password="12345678"
 db_name="postgres"
 
 echo "Waiting for database to be ready..."
-while ! docker exec -e PGPASSWORD="$db_password" -it "$container_name" psql -h "$db_host" -p "$db_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" > /dev/null 2>&1; do
+while ! docker exec -e PGPASSWORD="$db_password" -it "$container_name" psql -h "$db_host" -p "$db_local_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" > /dev/null 2>&1; do
   sleep 1
 done
 echo "Database is ready."
 
 # Step 2: Create/overwrite .env file
-PRISMA_ENV_PATH="../${service_name}/database/prisma/.env"
+PRISMA_ENV_PATH="../${service_name}/prisma/.env"
 mkdir -p "$(dirname "$PRISMA_ENV_PATH")"
 echo "DATABASE_URL=postgresql://${db_user}:${db_password}@${db_host}:${db_host_mapped_port}/${db_name}?schema=${service_name}" > "$PRISMA_ENV_PATH"
 
 # Step 3: Execute yarn and npx prisma db push
-cd "../${service_name}/database/prisma"
-npm i && npx prisma db push
+cd "../${service_name}"
+npm i prisma && npx prisma db push
+
+# Step 3.5: reset ENV file:
+PRISMA_ENV_PATH="./prisma/.env"
+mkdir -p "$(dirname "$PRISMA_ENV_PATH")"
+echo "DATABASE_URL=postgresql://${db_user}:${db_password}@${container_name}:${db_local_port}/${db_name}?schema=${service_name}" > "$PRISMA_ENV_PATH"
+
 
 # Step 4: Stop the database if stop flag is set
-cd "../../../development-setup"
+cd "../development-setup"
 if [ "$stop_flag" == "true" ]; then
   docker compose -f "$compose_file" stop postgres-service
   echo "Database stopped. Update successful."
