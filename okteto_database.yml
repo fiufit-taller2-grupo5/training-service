@@ -1,4 +1,4 @@
 name: prisma-job-training
 deploy:
-  - kubectl delete job prisma-job-training
-  - kubectl apply -f database/kubernetes
+  #- kubectl delete job prisma-job-training
+  - kubectl apply -f database/prisma-job-training.yml
