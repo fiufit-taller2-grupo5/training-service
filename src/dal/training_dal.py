@@ -20,13 +20,16 @@ class TrainingDal:
             return session.query(Training).filter(
                 Training.id == training_id).first()
 
-    def get_trainings(self, training_type: str, difficulty: str, skip_blocked: bool = True) -> List[Training]:
+    def get_trainings(self, training_type: str, difficulty: str, trainer_id: int, skip_blocked: bool = True) -> List[Training]:
         with self.Session() as session:
             query = session.query(Training)
             if training_type is not None:
                 query = query.filter(Training.type == training_type)
             if difficulty is not None:
                 query = query.filter(Training.difficulty == difficulty)
+            if trainer_id is not None:
+                query = query.filter(Training.trainerId == trainer_id)
+
 
             if skip_blocked:
                 query = query.filter(Training.state == ACTIVE_STATE)
