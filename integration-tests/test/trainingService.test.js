@@ -90,20 +90,33 @@ describe('Integration Tests ', () => {
     expect(response.statusCode).to.be.equal(200);
   });
 
-  it('POST training plan', async () => {
+  it('complete POST training plan', async () => {
+    await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user',
+          email: 'user@email.com',
+        })
+    );
+
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
         .set('dev', 'true')
         .send({
           title: 'Test plan',
-          type: 'Cardio',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: 1
         })
     );
-    console.log(response)
     expect(response.statusCode).to.be.equal(200);
     expect(response.body).to.have.property('title', 'Test plan');
-    expect(response.body).to.have.property('type', 'Cardio');
+    expect(response.body).to.have.property('type', 'Running');
     const trainings = await authedRequest(
       request(apiGatewayHost)
         .get('/training-service/api/trainings')
@@ -111,7 +124,7 @@ describe('Integration Tests ', () => {
     );
     expect(trainings.body).to.have.lengthOf(1);
     expect(trainings.body[0]).to.have.property('title', 'Test plan');
-    expect(trainings.body[0]).to.have.property('type', 'Cardio');
+    expect(trainings.body[0]).to.have.property('type', 'Running');
   });
   it('GET training plan', async () => {
     const response = await authedRequest(
@@ -120,7 +133,11 @@ describe('Integration Tests ', () => {
         .set('dev', 'true')
         .send({
           title: 'Test plan',
-          type: 'Cardio',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: 1
         })
     );
 
@@ -130,9 +147,9 @@ describe('Integration Tests ', () => {
         .get(`/training-service/api/trainings/${trainingId}`)
         .set('dev', 'true')
     );
-
+    expect(training.statusCode).to.be.equal(200);
     expect(training.body).to.have.property('title', 'Test plan');
-    expect(training.body).to.have.property('type', 'Cardio');
+    expect(training.body).to.have.property('type', 'Running');
   });
 
   it('GET training plan not found', async () => {
@@ -141,6 +158,7 @@ describe('Integration Tests ', () => {
         .get(`/training-service/api/trainings/1`)
         .set('dev', 'true')
     );
+    console.log(training);
     expect(training.statusCode).to.be.equal(404);
     expect(training.body).to.have.property('message', 'Training with id 1 does not exist');
   });
@@ -153,7 +171,11 @@ describe('Integration Tests ', () => {
         .set('dev', 'true')
         .send({
           title: 'Test plan',
-          type: 'Cardio',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: 1
         })
     );
 
@@ -163,7 +185,11 @@ describe('Integration Tests ', () => {
         .set('dev', 'true')
         .send({
           title: 'Test plan 2',
-          type: 'Cardio',
+          type: 'Swimming',
+          description: 'Test description',
+          difficulty: 2,
+          state: 'active',
+          trainerId: 1
         })
     );
 
@@ -175,10 +201,10 @@ describe('Integration Tests ', () => {
     expect(trainings.statusCode).to.be.equal(200);
     expect(trainings.body).to.have.lengthOf(2);
     expect(trainings.body[0]).to.have.property('title', 'Test plan');
-    expect(trainings.body[0]).to.have.property('type', 'Cardio');
+    expect(trainings.body[0]).to.have.property('type', 'Running');
 
     expect(trainings.body[1]).to.have.property('title', 'Test plan 2');
-    expect(trainings.body[1]).to.have.property('type', 'Cardio');
+    expect(trainings.body[1]).to.have.property('type', 'Swimming');
   });
 
   it('POST user favorite trainings', async () => {
@@ -188,17 +214,11 @@ describe('Integration Tests ', () => {
         .set('dev', 'true')
         .send({
           title: 'Test plan',
-          type: 'Cardio',
-        })
-    );
-
-    const user = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'test',
-          email: 'test@mail.com',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: 1
         })
     );
 
@@ -216,6 +236,7 @@ describe('Integration Tests ', () => {
         .post(`/training-service/api/trainings/${trainingId}/favorite/${userId}`)
         .set('dev', 'true')
     );
+
     expect(favorite.statusCode).to.be.equal(200);
     expect(favorite.body).to.have.property('userId', userId);
     expect(favorite.body).to.have.property('trainingPlanId', trainingId);
@@ -229,58 +250,61 @@ describe('Integration Tests ', () => {
         .set('dev', 'true')
         .send({
           title: 'Test plan',
-          type: 'Cardio',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: 1
         })
     );
+
     const training2 = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
         .set('dev', 'true')
         .send({
           title: 'Test plan 2',
-          type: 'Cardio',
-        })
-    );
-    const user = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'test',
-          email: 'test@mail.com',
+          type: 'Swimming',
+          description: 'Test description 2',
+          difficulty: 4,
+          state: 'active',
+          trainerId: 1
         })
     );
 
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get('/user-service/api/users')
-        .set('dev', 'true')
-    );
-
-    const userId = users.body[0].id;
     const trainingId1 = training1.body.id;
     const trainingId2 = training2.body.id;
 
-    await authedRequest(
+    let res = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId1}/favorite/${userId}`)
+        .post(`/training-service/api/trainings/${trainingId1}/favorite/1`)
         .set('dev', 'true')
     );
-    await authedRequest(
+    expect(res.statusCode).to.be.equal(200);
+    expect(res.body).to.have.property('userId', 1);
+    expect(res.body).to.have.property('trainingPlanId', trainingId1);
+
+    res = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId2}/favorite/${userId}`)
+        .post(`/training-service/api/trainings/${trainingId2}/favorite/1`)
         .set('dev', 'true')
     );
+
+    expect(res.statusCode).to.be.equal(200);
+    expect(res.body).to.have.property('userId', 1);
+    expect(res.body).to.have.property('trainingPlanId', trainingId2);
+
     const favorites = await authedRequest(
       request(apiGatewayHost)
-        .get(`/training-service/api/trainings/favorites/${userId}`)
+        .get(`/training-service/api/trainings/favorites/1`)
         .set('dev', 'true')
     );
     expect(favorites.statusCode).to.be.equal(200);
+    console.log(favorites);
     expect(favorites.body).to.have.lengthOf(2);
     expect(favorites.body[0]).to.have.property('title', 'Test plan');
-    expect(favorites.body[0]).to.have.property('type', 'Cardio');
+    expect(favorites.body[0]).to.have.property('type', 'Running');
     expect(favorites.body[1]).to.have.property('title', 'Test plan 2');
-    expect(favorites.body[1]).to.have.property('type', 'Cardio');
+    expect(favorites.body[1]).to.have.property('type', 'Swimming');
   });
 });
