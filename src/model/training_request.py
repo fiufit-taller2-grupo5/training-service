@@ -8,3 +8,8 @@ class TrainingRequest(BaseModel):
     difficulty: int = None
     type: str = None
     trainerId: int = None
+
+
+class PlanReviewRequest(BaseModel):
+    comment: str = None
+    score: int = None

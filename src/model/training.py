@@ -26,13 +26,34 @@ class Training(Base):
             "description": self.description,
         }
 
+
 class UserFavoriteTrainingPlan(Base):
     __tablename__ = "UserFavoriteTrainingPlan"
 
     userId = Column(Integer, primary_key=True)
     trainingPlanId = Column(Integer, primary_key=True)
+
     def as_dict(self):
         return {
             "userId": self.userId,
+            "trainingPlanId": self.trainingPlanId,
+        }
+
+
+class PlanReview(Base):
+    __tablename__ = "PlanReview"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    userId = Column(Integer, nullable=True)
+    comment = Column(String, nullable=True)
+    score = Column(Integer, nullable=True)
+    trainingPlanId = Column(Integer, nullable=True)
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "userId": self.userId,
+            "comment": self.comment,
+            "score": self.score,
             "trainingPlanId": self.trainingPlanId,
         }

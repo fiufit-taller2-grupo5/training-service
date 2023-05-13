@@ -1,33 +1,37 @@
 from db.database import training_dal
 from model.training import Training
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Request, Response, Depends
 from fastapi.responses import JSONResponse
-from model.training_request import TrainingRequest
+from model.training_request import TrainingRequest, PlanReviewRequest
 from fastapi import HTTPException
 from sqlalchemy.orm import sessionmaker
 from constants import BLOCKED_STATE, ACTIVE_STATE
 router = APIRouter()
 
+
 def get_unblocked_training_plan(training_plan_id: int):
+    # Initialize a new session
     training_plan = training_dal.get_training_by_id(training_plan_id)
 
     if not training_plan:
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail=f"Training with id {training_plan_id} does not exist"
         )
 
     if training_plan.state == BLOCKED_STATE:
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail=f"Training with id {training_plan_id} is blocked"
         )
 
     return training_plan
 
+
 @router.get("/")
 async def get_all_trainigs(response: Response, training_type: str = None, difficulty: int = None, skip_blocked: bool = True):
-    result = training_dal.get_trainings(training_type, difficulty, skip_blocked)
+    result = training_dal.get_trainings(
+        training_type, difficulty, skip_blocked)
     if result is None:
         return JSONResponse(
             status_code=404,
@@ -51,9 +55,11 @@ async def get_training_by_id(training_plan: Training = Depends(get_unblocked_tra
 @router.post("/{training_plan_id}/favorite/{user_id}")
 async def add_training_to_favorite(training_plan: Training = Depends(get_unblocked_training_plan), user_id: int = None):
     try:
-        result = training_dal.add_training_to_favorite(training_plan.id, user_id)
+        result = training_dal.add_training_to_favorite(
+            training_plan.id, user_id)
     except:
-        raise HTTPException(status_code=500, detail="Could not add to favorite")
+        raise HTTPException(
+            status_code=500, detail="Could not add to favorite")
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
@@ -65,6 +71,7 @@ async def get_favorite_trainings(user_id):
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
 
+
 @router.put("/{training_plan_id}/block")
 async def block_training_plan(training_plan: Training = Depends(get_unblocked_training_plan)):
     training_plan.state = BLOCKED_STATE
@@ -73,6 +80,7 @@ async def block_training_plan(training_plan: Training = Depends(get_unblocked_tr
         status_code=200,
         content=training_plan.as_dict()
     )
+
 
 @router.put("/{training_plan_id}/unblock")
 async def unblock_training_plan(training_plan_id):
@@ -104,15 +112,34 @@ async def add_training(training_request: TrainingRequest):
     try:
         result = training_dal.add_training(training)
         return JSONResponse(
-        status_code=200,
-        content=result.as_dict()
-    )
+            status_code=200,
+            content=result.as_dict()
+        )
     except Exception as e:
         return JSONResponse(
-        status_code=400,
-        content= {
-            "status": "error",
-            "message": "Could not add training, maybe there's a missing property",
-            "fullMessage": f"{e}"
+            status_code=400,
+            content={
+                "status": "error",
+                "message": "Could not add training, maybe there's a missing property",
+                "fullMessage": f"{e}"
             }
         )
+
+
+@router.post("/{training_plan_id}/review/{user_id}")
+async def add_training_review(training_plan_id: int, user_id: int, request: PlanReviewRequest):
+    try:
+        result = training_dal.add_training_review(
+            training_plan_id, user_id, request.score, str(request.comment))
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result.as_dict())
+
+
+@router.get("/{training_plan_id}/reviews")
+async def get_training_reviews(training_plan_id: int):
+    try:
+        result = training_dal.get_training_reviews(training_plan_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result)
