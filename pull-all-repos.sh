@@ -16,7 +16,7 @@ for dir in "${current_dir}"/*; do
 
       if [ -n "${git_ssh_url}" ]; then
         echo "Pulling in $(basename "${dir}")"
-        git pull "${git_ssh_url}"
+        git pull origin
       else
         echo "Skipping $(basename "${dir}"), no SSH URL found"
       fi
