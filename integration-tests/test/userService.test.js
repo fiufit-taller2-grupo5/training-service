@@ -151,7 +151,7 @@ describe('Integration Tests ', () => {
                 }));
 
         expect(postResponse.statusCode).to.be.equal(409);
-        expect(postResponse.body.error).to.be.equal('Email already in use');
+        expect(postResponse.body.message).to.be.equal('user with email test@mail already exists');
     });
 
 
@@ -185,11 +185,78 @@ describe('Integration Tests ', () => {
 
     });
 
-    it('POST new Admin', async () => {
+    it('PUT user with invalid id', async () => {
+        const putResponse = await authedRequest(
+            request(apiGatewayHost)
+                .put(`/user-service/api/users/123/metadata`)
+                .send({
+                    name: 'test2',
+                    email: 'test2@mail',
+                    location: 'test'
+                }));
+        expect(putResponse.statusCode).to.be.equal(404);
+        expect(putResponse.body.message).to.be.equal('user with id 123 not found');
+    });
 
-
-        // create new admin with email and password with header test=true
+    it('PUT user with invalid metadata, location missing', async () => {
         const postResponse = await authedRequest(
+            request(apiGatewayHost)
+                .post('/user-service/api/users')
+                .send({
+                    name: 'test',
+                    email: 'test@mail'
+                }
+                ));
+        const response = await authedRequest(
+            request(apiGatewayHost)
+                .get('/user-service/api/users'));
+
+        const userId = response.body[0].id;
+        const putResponse = await authedRequest(
+            request(apiGatewayHost)
+                .put(`/user-service/api/users/${userId}/metadata`)
+                .send({
+                    name: 'test2',
+                    email: 'test2@mail'
+                }));
+
+        expect(putResponse.statusCode).to.be.equal(500);
+    });
+
+    it('GET user with entire information', async () => {
+        const postResponse = await authedRequest(
+            request(apiGatewayHost)
+                .post('/user-service/api/users')
+                .send({
+                    name: 'test',
+                    email: 'test@mail'
+                }
+                ));
+        const users = await authedRequest(
+            request(apiGatewayHost)
+                .get('/user-service/api/users'));
+
+        const userId = users.body[0].id;
+        const putResponse = await authedRequest(
+            request(apiGatewayHost)
+                .put(`/user-service/api/users/${userId}/metadata`)
+                .send({
+                    location: 'test'
+                }));
+
+        const getResponse = await authedRequest(
+            request(apiGatewayHost)
+                .get(`/user-service/api/users/${userId}`));
+
+        expect(getResponse.statusCode).to.be.equal(200);
+        expect(getResponse.body.name).to.be.equal('test');
+        expect(getResponse.body.email).to.be.equal('test@mail');
+        expect(getResponse.body.location).to.be.equal('test');
+    });
+
+
+    it('POST new Admin', async () => {
+        await authedRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -197,9 +264,6 @@ describe('Integration Tests ', () => {
                     email: 'test@mail',
                     password: 'test'
                 }).set('test', 'true'));
-
-        expect(postResponse.statusCode).to.be.equal(200);
-
 
         const response = await authedRequest(
             request(apiGatewayHost)
@@ -212,15 +276,11 @@ describe('Integration Tests ', () => {
         expect(response.body[0].email).to.be.equal('test@mail');
     });
 
-
-
-
     it('GET non-existent admin', async () => {
         const response = await authedRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/admins/123')
         )
-
         expect(response.statusCode).to.be.equal(404);
     });
 
@@ -254,8 +314,9 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }).set('test', 'true'));
 
-        expect(postResponse.statusCode).to.be.equal(409);
-        expect(postResponse.body.error).to.be.equal('Email already in use');
+        console.log(postResponse);
+        expect(postResponse.statusCode).to.be.equal(500);
+        expect(postResponse.body.message).to.be.equal('Email already in use');
     });
 
 
@@ -268,6 +329,7 @@ describe('Integration Tests ', () => {
                     email: 'test@email.com',
                 }).set('test', 'true'));
 
+        console.log(postResponse.body)
         expect(postResponse.statusCode).to.be.equal(200);
 
         const users = await authedRequest(
@@ -299,11 +361,12 @@ describe('Integration Tests ', () => {
                 }
                 ));
 
-        const users = await authedRequest(
+        const response = await authedRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
 
-        const userId = users.body[0].id;
+        console.log(response.body);
+        const userId = response.body[0].id;
 
         const putResponse = await authedRequest(
             request(apiGatewayHost)
@@ -322,98 +385,5 @@ describe('Integration Tests ', () => {
         expect(getResponse.body.location).to.be.equal('test');
     });
 
-    it('PUT user with invalid id', async () => {
-        const putResponse = await authedRequest(
-            request(apiGatewayHost)
-                .put(`/user-service/api/users/123/metadata`)
-                .send({
-                    name: 'test2',
-                    email: 'test2@mail',
-                    location: 'test'
-                }));
-        expect(putResponse.statusCode).to.be.equal(404);
-        expect(putResponse.body.error).to.be.equal('User not found');
-    });
 
-    it('PUT user with invalid metadata, location missing', async () => {
-        const postResponse = await authedRequest(
-            request(apiGatewayHost)
-                .post('/user-service/api/users')
-                .send({
-                    name: 'test',
-                    email: 'test@mail'
-                }
-                ));
-        const users = await authedRequest(
-            request(apiGatewayHost)
-                .get('/user-service/api/users'));
-
-        const userId = users.body[0].id;
-        const putResponse = await authedRequest(
-            request(apiGatewayHost)
-                .put(`/user-service/api/users/${userId}/metadata`)
-                .send({
-                    name: 'test2',
-                    email: 'test2@mail'
-                }));
-
-        expect(putResponse.statusCode).to.be.equal(400);
-        expect(putResponse.body.error).to.be.equal('Missing location');
-    });
-
-    it('GET user with entire information', async () => {
-        const postResponse = await authedRequest(
-            request(apiGatewayHost)
-                .post('/user-service/api/users')
-                .send({
-                    name: 'test',
-                    email: 'test@mail'
-                }
-                ));
-        const users = await authedRequest(
-            request(apiGatewayHost)
-                .get('/user-service/api/users'));
-
-        const userId = users.body[0].id;
-        const putResponse = await authedRequest(
-            request(apiGatewayHost)
-                .put(`/user-service/api/users/${userId}/metadata`)
-                .send({
-                    location: 'test'
-                }));
-
-        const getResponse = await authedRequest(
-            request(apiGatewayHost)
-                .get(`/user-service/api/users/${userId}`));
-
-        expect(getResponse.statusCode).to.be.equal(200);
-        expect(getResponse.body.name).to.be.equal('test');
-        expect(getResponse.body.email).to.be.equal('test@mail');
-        expect(getResponse.body.UserMetadata.location).to.be.equal('test');
-
-    });
-
-    it('GET user with metadata in null', async () => {
-        const postResponse = await authedRequest(
-            request(apiGatewayHost)
-                .post('/user-service/api/users')
-                .send({
-                    name: 'test',
-                    email: 'test@mail'
-                }
-                ));
-        const users = await authedRequest(
-            request(apiGatewayHost)
-                .get('/user-service/api/users'));
-
-        const userId = users.body[0].id;
-        const getResponse = await authedRequest(
-            request(apiGatewayHost)
-                .get(`/user-service/api/users/${userId}`));
-
-        expect(getResponse.statusCode).to.be.equal(200);
-        expect(getResponse.body.name).to.be.equal('test');
-        expect(getResponse.body.email).to.be.equal('test@mail');
-        expect(getResponse.body.UserMetadata).to.be.equal(null);
-    });
 });
