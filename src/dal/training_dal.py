@@ -6,9 +6,7 @@ from model.training import UserFavoriteTrainingPlan
 from fastapi import HTTPException
 import requests
 from constants import BLOCKED_STATE, ACTIVE_STATE
-
-
-
+from sqlalchemy.exc import SQLAlchemyError
 class TrainingDal:
 
     def __init__(self, engine):
@@ -40,10 +38,13 @@ class TrainingDal:
                 status_code=404, detail="User not found")
 
         with self.Session() as session:
-            session.add(training)
-            session.commit()
-            session.refresh(training)
-            return training
+            try:
+                session.add(training)
+                session.commit()
+                session.refresh(training)
+                return training
+            except SQLAlchemyError as e:
+                raise Exception(str(e))
     def update_training(self, training: Training):
         with self.Session() as session:
             # Convert the Training object to a dictionary
@@ -82,7 +83,7 @@ class TrainingDal:
         with self.Session() as session:
             trainings = session.query(Training).join(UserFavoriteTrainingPlan, UserFavoriteTrainingPlan.trainingPlanId == Training.id) \
                 .filter(UserFavoriteTrainingPlan.userId == user_id) \
-                .filter(Training.state is ACTIVE_STATE).all()
+                .filter(Training.state == ACTIVE_STATE).all()
             if not trainings:
                 return []
             return [training.as_dict() for training in trainings]

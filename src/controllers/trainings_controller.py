@@ -9,20 +9,21 @@ from constants import BLOCKED_STATE, ACTIVE_STATE
 router = APIRouter()
 
 def get_unblocked_training_plan(training_plan_id: int):
-        # Initialize a new session
     training_plan = training_dal.get_training_by_id(training_plan_id)
 
-    # If the training plan doesn't exist
     if not training_plan:
-        raise HTTPException(status_code=404, detail="Training plan not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Training with id {training_plan_id} does not exist"
+        )
 
-    # If the training plan is blocked
     if training_plan.state == BLOCKED_STATE:
-        raise HTTPException(status_code=403, detail="Training plan is blocked")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Training with id {training_plan_id} is blocked"
+        )
 
-    # If everything is okay, return the training plan
     return training_plan
-
 
 @router.get("/")
 async def get_all_trainigs(response: Response, training_type: str = None, difficulty: int = None, skip_blocked: bool = True):
@@ -100,8 +101,18 @@ async def add_training(training_request: TrainingRequest):
         type=training_request.type,
         trainerId=training_request.trainerId,
     )
-    result = training_dal.add_training(training)
-    return JSONResponse(
+    try:
+        result = training_dal.add_training(training)
+        return JSONResponse(
         status_code=200,
         content=result.as_dict()
     )
+    except Exception as e:
+        return JSONResponse(
+        status_code=400,
+        content= {
+            "status": "error",
+            "message": "Could not add training, maybe there's a missing property",
+            "fullMessage": f"{e}"
+            }
+        )

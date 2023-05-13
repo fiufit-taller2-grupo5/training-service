@@ -1,6 +1,9 @@
+from urllib.request import Request
 from fastapi import FastAPI
 from controllers.trainings_controller import router as training_router
 from starlette.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 
 
 def init_routers(app):
@@ -8,6 +11,13 @@ def init_routers(app):
 
 
 app = FastAPI()
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
 
 origins = [
     "http://localhost:80",  # adjust this as necessary
