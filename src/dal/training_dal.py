@@ -39,7 +39,10 @@ class TrainingDal:
 
     def add_training(self, training: TrainingPlan):
         user_service_url = f"http://user-service:80/api/users/{training.trainerId}"
-        response = requests.get(user_service_url)
+        # make request with header "test" set to "true"
+        response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
         if response.status_code != 200:
             raise HTTPException(
                 status_code=404, detail="Trainer not found")
