@@ -67,7 +67,7 @@ describe('Integration Tests ', () => {
 
 
     const authedRequest = (request) => {
-        return request.set('dev', 'true');
+        return request.set('dev', 'true').set('test', 'true');
     }
     before(async () => {
         await startDockerCompose();
@@ -205,8 +205,8 @@ describe('Integration Tests ', () => {
                 .send({
                     name: 'test',
                     email: 'test@mail'
-                }
-                ));
+                }));
+
         const response = await authedRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
@@ -216,10 +216,10 @@ describe('Integration Tests ', () => {
             request(apiGatewayHost)
                 .put(`/user-service/api/users/${userId}/metadata`)
                 .send({
-                    name: 'test2',
-                    email: 'test2@mail'
+                    name: 'test',
+                    email: 'test@mail'
                 }));
-
+        console.log("put response:", putResponse.body);
         expect(putResponse.statusCode).to.be.equal(500);
     });
 
@@ -232,6 +232,7 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }
                 ));
+
         const users = await authedRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
@@ -314,7 +315,6 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }).set('test', 'true'));
 
-        console.log(postResponse);
         expect(postResponse.statusCode).to.be.equal(500);
         expect(postResponse.body.message).to.be.equal('Email already in use');
     });
@@ -329,7 +329,6 @@ describe('Integration Tests ', () => {
                     email: 'test@email.com',
                 }).set('test', 'true'));
 
-        console.log(postResponse.body)
         expect(postResponse.statusCode).to.be.equal(200);
 
         const users = await authedRequest(
@@ -365,7 +364,6 @@ describe('Integration Tests ', () => {
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
 
-        console.log(response.body);
         const userId = response.body[0].id;
 
         const putResponse = await authedRequest(

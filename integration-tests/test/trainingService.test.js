@@ -6,8 +6,12 @@ const { describe, before, after, beforeEach } = require('mocha');
 
 const apiGatewayHost = 'http://localhost:3000';
 
+const authedRequest = (request) => {
+  return request.set('dev', 'true').set('test', 'true');
+}
+
 async function truncateTables() {
-  const connection = await createConnection({
+  let connection = await createConnection({
     type: 'postgres',
     host: 'localhost',
     port: 5434,
@@ -25,14 +29,28 @@ async function truncateTables() {
   }
 
   await connection.close();
+
+  connection = await createConnection({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5434,
+    username: 'postgres',
+    password: '12345678',
+    database: 'postgres',
+    schema: 'training-service',
+    synchronize: false,
+  });
+
+  await connection.query(`TRUNCATE TABLE "user-service"."User" CASCADE`);
+
+  await connection.close();
 }
 
 const isServiceHealthy = async (servicePath) => {
   try {
     console.log(`waiting for service ${servicePath} to be healthy`)
-    const response = await request(apiGatewayHost)
-      .get(servicePath)
-      .set('dev', 'true');
+    const response = await authedRequest(request(apiGatewayHost)
+      .get(servicePath));
     console.log(`service ${servicePath} response: ${response.statusCode}`)
     return response.statusCode === 200;
   } catch (error) {
@@ -65,10 +83,11 @@ const waitUntilServicesAreHealthy = async () => {
 
 describe('Integration Tests ', () => {
 
+  let testUser;
+  let testUser2;
+  let testTrainer;
 
-  const authedRequest = (request) => {
-    return request.set('dev', 'true');
-  }
+
   before(async () => {
     await startDockerCompose();
     await waitUntilServicesAreHealthy();
@@ -77,6 +96,38 @@ describe('Integration Tests ', () => {
   after(() => {
     return stopDockerCompose();
   });
+
+  beforeEach(async () => {
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test athlete',
+          email: 'test-athlete@mail.com',
+        })
+    )
+    testUser = response.body;
+
+    const response2 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test athlete 2',
+          email: 'test-athlete-2@mail.com',
+        })
+    )
+    testUser2 = response2.body;
+
+    const response3 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .send({
+          name: 'test trainer',
+          email: 'test-trainer@mail.com',
+        })
+    )
+    testTrainer = response3.body;
+  })
 
   afterEach(async () => {
     await truncateTables();
@@ -91,27 +142,17 @@ describe('Integration Tests ', () => {
   });
 
   it('complete POST training plan', async () => {
-    await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user',
-          email: 'user@email.com',
-        })
-    );
-
+    console.log("el user por default", testUser)
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
     expect(response.statusCode).to.be.equal(200);
@@ -120,7 +161,6 @@ describe('Integration Tests ', () => {
     const trainings = await authedRequest(
       request(apiGatewayHost)
         .get('/training-service/api/trainings')
-        .set('dev', 'true')
     );
     expect(trainings.body).to.have.lengthOf(1);
     expect(trainings.body[0]).to.have.property('title', 'Test plan');
@@ -130,14 +170,13 @@ describe('Integration Tests ', () => {
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
@@ -145,7 +184,6 @@ describe('Integration Tests ', () => {
     const training = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/${trainingId}`)
-        .set('dev', 'true')
     );
     expect(training.statusCode).to.be.equal(200);
     expect(training.body).to.have.property('title', 'Test plan');
@@ -156,9 +194,7 @@ describe('Integration Tests ', () => {
     const training = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/1`)
-        .set('dev', 'true')
     );
-    console.log(training);
     expect(training.statusCode).to.be.equal(404);
     expect(training.body).to.have.property('message', 'Training with id 1 does not exist');
   });
@@ -168,35 +204,32 @@ describe('Integration Tests ', () => {
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
     const response2 = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan 2',
           type: 'Swimming',
           description: 'Test description',
           difficulty: 2,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
     const trainings = await authedRequest(
       request(apiGatewayHost)
         .get('/training-service/api/trainings')
-        .set('dev', 'true')
     );
     expect(trainings.statusCode).to.be.equal(200);
     expect(trainings.body).to.have.lengthOf(2);
@@ -211,21 +244,19 @@ describe('Integration Tests ', () => {
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
     const users = await authedRequest(
       request(apiGatewayHost)
         .get('/user-service/api/users')
-        .set('dev', 'true')
     );
 
     const trainingId = response.body.id;
@@ -233,12 +264,11 @@ describe('Integration Tests ', () => {
 
     const favorite = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/favorite/${userId}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/favorite/${testUser.id}`)
     );
 
     expect(favorite.statusCode).to.be.equal(200);
-    expect(favorite.body).to.have.property('userId', userId);
+    expect(favorite.body).to.have.property('userId', testUser.id);
     expect(favorite.body).to.have.property('trainingPlanId', trainingId);
   });
 
@@ -247,28 +277,26 @@ describe('Integration Tests ', () => {
     const training1 = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
     const training2 = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan 2',
           type: 'Swimming',
           description: 'Test description 2',
           difficulty: 4,
           state: 'active',
-          trainerId: 1
+          trainerId: testUser.id
         })
     );
 
@@ -278,7 +306,6 @@ describe('Integration Tests ', () => {
     let res = await authedRequest(
       request(apiGatewayHost)
         .post(`/training-service/api/trainings/${trainingId1}/favorite/1`)
-        .set('dev', 'true')
     );
     expect(res.statusCode).to.be.equal(200);
     expect(res.body).to.have.property('userId', 1);
@@ -287,7 +314,6 @@ describe('Integration Tests ', () => {
     res = await authedRequest(
       request(apiGatewayHost)
         .post(`/training-service/api/trainings/${trainingId2}/favorite/1`)
-        .set('dev', 'true')
     );
 
     expect(res.statusCode).to.be.equal(200);
@@ -297,10 +323,8 @@ describe('Integration Tests ', () => {
     const favorites = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/favorites/1`)
-        .set('dev', 'true')
     );
     expect(favorites.statusCode).to.be.equal(200);
-    console.log(favorites);
     expect(favorites.body).to.have.lengthOf(2);
     expect(favorites.body[0]).to.have.property('title', 'Test plan');
     expect(favorites.body[0]).to.have.property('type', 'Running');
@@ -310,47 +334,16 @@ describe('Integration Tests ', () => {
 
   it("POST training review", async () => {
 
-    const trainer = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'trainer',
-          email: 'trainer@mail.com'
-        })
-    );
-
-    const user = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user',
-          email: 'user@mail.com'
-        })
-    );
-
-
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/user-service/api/users`)
-        .set('dev', 'true')
-    );
-
-    const trainerId = users.body[0].id;
-    const userId = users.body[1].id;
-
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: trainerId
+          trainerId: testTrainer.id
         })
     );
 
@@ -358,73 +351,33 @@ describe('Integration Tests ', () => {
 
     const review = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${userId}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testUser.id}`)
         .send({
           score: 5,
           comment: 'Test comment'
         })
     );
 
+    console.log("the review1 response:", review.body);
     expect(review.statusCode).to.be.equal(200);
-    expect(review.body).to.have.property('userId', userId);
+    expect(review.body).to.have.property('userId', testUser.id);
     expect(review.body).to.have.property('trainingPlanId', trainingId);
     expect(review.body).to.have.property('score', 5);
     expect(review.body).to.have.property('comment', 'Test comment');
   });
 
   it("GET training reviews", async () => {
-    const trainer = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'trainer',
-          email: 'trainer@mail.com'
-        })
-    );
-
-    const user1 = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user1',
-          email: 'user1@mail.com'
-        })
-    );
-
-    const user2 = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user2',
-          email: 'user2@mail.com'
-        })
-    );
-
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/user-service/api/users`)
-        .set('dev', 'true')
-    );
-
-    const trainerId = users.body[0].id;
-    const userId1 = users.body[1].id;
-    const userId2 = users.body[2].id;
 
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: trainerId
+          trainerId: testTrainer.id
         })
     );
 
@@ -432,106 +385,63 @@ describe('Integration Tests ', () => {
 
     const review = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testUser.id}`)
         .send({
           score: 5,
           comment: 'Test comment'
         })
     );
 
+    console.log("the review1 response:", review.body);
+
     const review2 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${userId2}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testUser2.id}`)
         .send({
           score: 2,
           comment: 'Test comment'
         })
     );
+    console.log("re reviewer 2", testUser2)
+    console.log("the review2 response:", review2.body);
 
     const reviews = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/${trainingId}/reviews`)
-        .set('dev', 'true')
     );
 
     expect(reviews.statusCode).to.be.equal(200);
     expect(reviews.body).to.have.lengthOf(2);
-    expect(reviews.body[0]).to.have.property('userId', userId1);
+    expect(reviews.body[0]).to.have.property('userId', testUser.id);
     expect(reviews.body[0]).to.have.property('trainingPlanId', trainingId);
     expect(reviews.body[0]).to.have.property('score', 5);
     expect(reviews.body[0]).to.have.property('comment', 'Test comment');
-    expect(reviews.body[1]).to.have.property('userId', userId2);
+    expect(reviews.body[1]).to.have.property('userId', testUser2.id);
     expect(reviews.body[1]).to.have.property('trainingPlanId', trainingId);
     expect(reviews.body[1]).to.have.property('score', 2);
     expect(reviews.body[1]).to.have.property('comment', 'Test comment');
-
   });
 
   it("POST invalid training review", async () => {
-    const trainer = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'trainer',
-          email: 'trainer@mail.com'
-        })
-    );
-
-    const user1 = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user1',
-          email: 'user1@mail.com'
-        })
-    );
-
-    const user2 = await authedRequest(
-      request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
-        .send({
-          name: 'user2',
-          email: 'user2@mail.com'
-        })
-    );
-
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/user-service/api/users`)
-        .set('dev', 'true')
-    );
-
-    const trainerId = users.body[0].id;
-    const userId1 = users.body[1].id;
-    const userId2 = users.body[2].id;
-
     const response = await authedRequest(
       request(apiGatewayHost)
         .post('/training-service/api/trainings')
-        .set('dev', 'true')
         .send({
           title: 'Test plan',
           type: 'Running',
           description: 'Test description',
           difficulty: 1,
           state: 'active',
-          trainerId: trainerId
+          trainerId: testTrainer.id
         })
     );
 
     const trainingId = response.body.id;
 
-
     // not puting valid training 
     const review = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/40000/review/${userId1}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/40000/review/${testUser.id}`)
         .send({
           score: 5,
           comment: 'Test comment'
@@ -546,7 +456,6 @@ describe('Integration Tests ', () => {
     const review2 = await authedRequest(
       request(apiGatewayHost)
         .post(`/training-service/api/trainings/${trainingId}/review/40000`)
-        .set('dev', 'true')
         .send({
           score: 5,
           comment: 'Test comment'
@@ -560,8 +469,7 @@ describe('Integration Tests ', () => {
     // not puting valid score
     const review3 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testUser.id}`)
         .send({
           score: 6,
           comment: 'Test comment'
@@ -574,8 +482,7 @@ describe('Integration Tests ', () => {
     // missing score
     const review4 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testUser.id}`)
         .send({
           comment: 'Test comment'
         })
@@ -587,8 +494,7 @@ describe('Integration Tests ', () => {
     // trainer cannot review his own training
     const review5 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId}/review/${trainerId}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${trainingId}/review/${testTrainer.id}`)
         .send({
           score: 5,
           comment: 'Test comment'
@@ -597,30 +503,26 @@ describe('Integration Tests ', () => {
 
     expect(review5.statusCode).to.be.equal(409);
     expect(review5.body).to.have.property('message', "Trainer can't review his own training plan");
-
   });
 
   it("POST user training", async () => {
-    const user = await authedRequest(
+
+    const training = await authedRequest(
       request(apiGatewayHost)
-        .post('/user-service/api/users')
-        .set('dev', 'true')
+        .post('/training-service/api/trainings')
         .send({
-          name: 'user1',
-          email: 'user1@mail.com'
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: testTrainer.id
         })
     );
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/user-service/api/users`)
-        .set('dev', 'true')
-    );
-    const userId = users.body[1].id;
 
     const response = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/${userId}`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
         .send(
           {
             "distance": 15,
@@ -632,75 +534,30 @@ describe('Integration Tests ', () => {
         )
     );
 
-
+    console.log("the response:", response.body);
     expect(response.statusCode).to.be.equal(200);
-    expect(response.body).to.have.property('userId', userId);
+    expect(response.body).to.have.property('userId', testUser.id);
     expect(response.body).to.have.property('distance', 15);
 
   });
 
-  it("POST multiple user trainings and GET total and average", async () => {
-
-    const response = await authedRequest(
-      request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4`)
-        .set('dev', 'true')
-        .send(
-          {
-            "distance": 20,
-            "calories": 20,
-            "duration": 20,
-            "date": 20,
-            "steps": 20
-          }
-        )
-    );
-
-    const response2 = await authedRequest(
-      request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4`)
-        .set('dev', 'true')
-        .send(
-          {
-            "distance": 10,
-            "calories": 10,
-            "duration": 10,
-            "date": 10,
-            "steps": 10
-          }
-        )
-    );
-
-
-    const average = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/training-service/api/trainings/user_training/4/average`)
-        .set('dev', 'true')
-    );
-
-
-    expect(average.statusCode).to.be.equal(200);
-    expect(average.body).to.have.property('distance', 15);
-    expect(average.body).to.have.property('calories', 15);
-    // ...
-
-    const total = await authedRequest(
-      request(apiGatewayHost)
-        .get(`/training-service/api/trainings/user_training/4/total`)
-        .set('dev', 'true')
-    );
-
-    expect(total.statusCode).to.be.equal(200);
-    expect(total.body).to.have.property('distance', 30);
-    expect(total.body).to.have.property('calories', 30);
-    // ...
-  });
-
   it("POST invalid user training", async () => {
+    const training = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: testTrainer.id
+        })
+    );
+
     const response = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
         .send(
           {
             "distance": -8,
@@ -717,8 +574,7 @@ describe('Integration Tests ', () => {
 
     const response2 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4000000`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${training.id}/user_training/4000`)
         .send(
           {
             "distance": -8,
@@ -735,8 +591,7 @@ describe('Integration Tests ', () => {
 
     const response3 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4000000`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
         .send(
           {
           }
@@ -749,8 +604,7 @@ describe('Integration Tests ', () => {
 
     const response4 = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/user_training/4000000`)
-        .set('dev', 'true')
+        .post(`/training-service/api/trainings/${training.id}/user_training/4000`)
         .send(
           {
             "distance": -8,
@@ -768,10 +622,51 @@ describe('Integration Tests ', () => {
   });
 
   it("GET user trainings", async () => {
+
+    const training = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: testTrainer.id
+        })
+    );
+
+    const training_session1 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 20,
+            "calories": 15,
+            "duration": 15,
+            "date": 15,
+            "steps": 15
+          }
+        )
+    );
+
+    const training_session2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 10,
+            "calories": 15,
+            "duration": 15,
+            "date": 15,
+            "steps": 15
+          }
+        )
+    );
+
     const response = await authedRequest(
       request(apiGatewayHost)
-        .get(`/training-service/api/trainings/user_training/4`)
-        .set('dev', 'true')
+        .get(`/training-service/api/trainings/${training.id}/user_training/${testUser.id}`)
     );
 
     expect(response.statusCode).to.be.equal(200);
