@@ -146,11 +146,11 @@ async def get_training_reviews(training_plan_id: int):
     return JSONResponse(status_code=200, content=result)
 
 
-@router.post("/user_training/{user_id}")
-async def add_user_training(user_id: int, request: UserTrainingRequest):
+@router.post("/{training_plan_id}/user_training/{user_id}")
+async def add_user_training(training_plan_id: int, user_id: int, request: UserTrainingRequest):
     try:
         result = training_dal.add_user_training(
-            user_id, request.trainingPlanId, request.distance, request.duration, request.steps, request.calories, request.date)
+            user_id, training_plan_id, request.distance, request.duration, request.steps, request.calories, request.date)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result.as_dict())

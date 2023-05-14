@@ -119,7 +119,10 @@ class TrainingDal:
                         status_code=404, detail="Training plan not found")
 
                 user_service_url = f"http://user-service:80/api/users/{user_id}"
-                response = requests.get(user_service_url)
+                response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
+
                 if response.status_code != 200:
                     raise HTTPException(
                         status_code=404, detail="User not found")
@@ -173,7 +176,9 @@ class TrainingDal:
                             status_code=404, detail="Training plan not found")
 
                 user_service_url = f"http://user-service:80/api/users/{user_id}"
-                response = requests.get(user_service_url)
+                response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
                 if response.status_code != 200:
                     raise HTTPException(
                         status_code=404, detail="User not found")
@@ -192,15 +197,17 @@ class TrainingDal:
                 session.rollback()
                 raise HTTPException(
                     status_code=e.status_code, detail=e.detail)
-            except:
+            except Exception as e:
                 session.rollback()
                 raise HTTPException(
-                    status_code=500, detail="Something went wrong")
+                    status_code=500, detail=f"Something went wrong: {e}")
 
     def get_user_training_average(self, user_id: int):
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
-            response = requests.get(user_service_url)
+            response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=404, detail="User not found")
@@ -232,7 +239,9 @@ class TrainingDal:
     def get_user_training_total(self, user_id: int):
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
-            response = requests.get(user_service_url)
+            response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=404, detail="User not found")
@@ -264,7 +273,9 @@ class TrainingDal:
     def get_user_trainings(self, user_id: int):
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
-            response = requests.get(user_service_url)
+            response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=404, detail="User not found")

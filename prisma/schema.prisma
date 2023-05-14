@@ -43,6 +43,7 @@ model TrainingPlan {
   state                    TrainingPlanState          @default(active)
   type                     TrainingType
   UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
+  UserTraining             UserTraining[]
 
   @@schema("training-service")
 }
@@ -79,14 +80,15 @@ model PlanReview {
 }
 
 model UserTraining {
-  id             Int    @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   distance       Float
   duration       Int
   steps          Int
   calories       Int
   date           String
   userId         Int
-  trainingPlanId Int?
+  trainingPlanId Int
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
 
   @@schema("training-service")
 }
