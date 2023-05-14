@@ -29,9 +29,9 @@ def get_unblocked_training_plan(training_plan_id: int):
 
 
 @router.get("/")
-async def get_all_trainigs(response: Response, training_type: str = None, difficulty: int = None, trainer_id: int = None, skip_blocked: bool = True):
+async def get_all_trainigs(response: Response, type: str = None, difficulty: int = None, trainer_id: int = None, skip_blocked: bool = True):
     result = training_dal.get_trainings(
-        training_type, difficulty, trainer_id, skip_blocked)
+        type, difficulty, trainer_id, skip_blocked)
     if result is None:
         return JSONResponse(
             status_code=404,
