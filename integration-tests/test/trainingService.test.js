@@ -767,5 +767,19 @@ describe('Integration Tests ', () => {
     expect(response4.body).to.have.property('message', 'Training plan not found');
   });
 
+  it("GET user trainings", async () => {
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/4`)
+        .set('dev', 'true')
+    );
+
+    expect(response.statusCode).to.be.equal(200);
+    expect(response.body).to.be.an('array');
+    expect(response.body).to.have.lengthOf(2);
+    expect(response.body[0]).to.have.property('distance', 20);
+    expect(response.body[1]).to.have.property('distance', 10);
+  });
+
 
 });
