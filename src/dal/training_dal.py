@@ -104,6 +104,10 @@ class TrainingDal:
                 if not user_id or not training_plan_id or not score:
                     raise HTTPException(
                         status_code=400, detail="Missing required fields (user_id, training_plan_id or score))")
+                
+                if score < 1 or score > 5:
+                    raise HTTPException(
+                        status_code=400, detail="Score must be between 1 and 5")
 
                 if session.query(Training).filter(Training.id == training_plan_id).count() == 0:
                     raise HTTPException(
