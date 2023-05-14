@@ -307,4 +307,298 @@ describe('Integration Tests ', () => {
     expect(favorites.body[1]).to.have.property('title', 'Test plan 2');
     expect(favorites.body[1]).to.have.property('type', 'Swimming');
   });
+
+  it("POST training review", async () => {
+
+    const trainer = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'trainer',
+          email: 'trainer@mail.com'
+        })
+    );
+
+    const user = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user',
+          email: 'user@mail.com'
+        })
+    );
+
+
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users`)
+        .set('dev', 'true')
+    );
+
+    const trainerId = users.body[0].id;
+    const userId = users.body[1].id;
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .set('dev', 'true')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: trainerId
+        })
+    );
+
+    const trainingId = response.body.id;
+
+    const review = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${userId}`)
+        .set('dev', 'true')
+        .send({
+          score: 5,
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review.statusCode).to.be.equal(200);
+    expect(review.body).to.have.property('userId', userId);
+    expect(review.body).to.have.property('trainingPlanId', trainingId);
+    expect(review.body).to.have.property('score', 5);
+    expect(review.body).to.have.property('comment', 'Test comment');
+  });
+
+  it("GET training reviews", async () => {
+    const trainer = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'trainer',
+          email: 'trainer@mail.com'
+        })
+    );
+
+    const user1 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user1',
+          email: 'user1@mail.com'
+        })
+    );
+
+    const user2 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user2',
+          email: 'user2@mail.com'
+        })
+    );
+
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users`)
+        .set('dev', 'true')
+    );
+
+    const trainerId = users.body[0].id;
+    const userId1 = users.body[1].id;
+    const userId2 = users.body[2].id;
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .set('dev', 'true')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: trainerId
+        })
+    );
+
+    const trainingId = response.body.id;
+
+    const review = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
+        .set('dev', 'true')
+        .send({
+          score: 5,
+          comment: 'Test comment'
+        })
+    );
+
+    const review2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${userId2}`)
+        .set('dev', 'true')
+        .send({
+          score: 2,
+          comment: 'Test comment'
+        })
+    );
+
+    const reviews = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/${trainingId}/reviews`)
+        .set('dev', 'true')
+    );
+
+    expect(reviews.statusCode).to.be.equal(200);
+    expect(reviews.body).to.have.lengthOf(2);
+    expect(reviews.body[0]).to.have.property('userId', userId1);
+    expect(reviews.body[0]).to.have.property('trainingPlanId', trainingId);
+    expect(reviews.body[0]).to.have.property('score', 5);
+    expect(reviews.body[0]).to.have.property('comment', 'Test comment');
+    expect(reviews.body[1]).to.have.property('userId', userId2);
+    expect(reviews.body[1]).to.have.property('trainingPlanId', trainingId);
+    expect(reviews.body[1]).to.have.property('score', 2);
+    expect(reviews.body[1]).to.have.property('comment', 'Test comment');
+
+  });
+
+  it("POST invalid training review", async () => {
+    const trainer = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'trainer',
+          email: 'trainer@mail.com'
+        })
+    );
+
+    const user1 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user1',
+          email: 'user1@mail.com'
+        })
+    );
+
+    const user2 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/user-service/api/users')
+        .set('dev', 'true')
+        .send({
+          name: 'user2',
+          email: 'user2@mail.com'
+        })
+    );
+
+    const users = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/user-service/api/users`)
+        .set('dev', 'true')
+    );
+
+    const trainerId = users.body[0].id;
+    const userId1 = users.body[1].id;
+    const userId2 = users.body[2].id;
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .set('dev', 'true')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: trainerId
+        })
+    );
+
+    const trainingId = response.body.id;
+
+
+    // not puting valid training 
+    const review = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/40000/review/${userId1}`)
+        .set('dev', 'true')
+        .send({
+          score: 5,
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review.statusCode).to.be.equal(404);
+    expect(review.body).to.have.property('message', 'Training plan not found');
+
+
+    // not puting valid user
+    const review2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/40000`)
+        .set('dev', 'true')
+        .send({
+          score: 5,
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review2.statusCode).to.be.equal(404);
+    expect(review2.body).to.have.property('message', 'User not found');
+
+
+    // not puting valid score
+    const review3 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
+        .set('dev', 'true')
+        .send({
+          score: 6,
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review3.statusCode).to.be.equal(400);
+    expect(review3.body).to.have.property('message', 'Score must be between 1 and 5');
+
+    // missing score
+    const review4 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${userId1}`)
+        .set('dev', 'true')
+        .send({
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review4.statusCode).to.be.equal(400);
+    expect(review4.body).to.have.property('message', 'Missing required fields (user_id, training_plan_id or score))');
+
+    // trainer cannot review his own training
+    const review5 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${trainingId}/review/${trainerId}`)
+        .set('dev', 'true')
+        .send({
+          score: 5,
+          comment: 'Test comment'
+        })
+    );
+
+    expect(review5.statusCode).to.be.equal(409);
+    expect(review5.body).to.have.property('message', "Trainer can't review his own training plan");
+
+  });
+
+
 });
