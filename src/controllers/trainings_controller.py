@@ -172,3 +172,12 @@ async def get_user_trainings(user_id: int):
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+@router.get("/user_training/{user_id}")
+async def get_user_trainings(user_id: int):
+    try:
+        result = training_dal.get_user_trainings(user_id)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
