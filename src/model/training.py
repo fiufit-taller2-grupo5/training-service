@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String
 Base = declarative_base()
 
 
-class Training(Base):
+class TrainingPlan(Base):
     __tablename__ = "TrainingPlan"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -55,5 +55,30 @@ class PlanReview(Base):
             "userId": self.userId,
             "comment": self.comment,
             "score": self.score,
+            "trainingPlanId": self.trainingPlanId,
+        }
+
+
+class UserTraining(Base):
+    __tablename__ = "UserTraining"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    userId = Column(Integer, nullable=True)
+    distance = Column(Integer, nullable=True)
+    duration = Column(Integer, nullable=True)
+    steps = Column(Integer, nullable=True)
+    calories = Column(Integer, nullable=True)
+    date = Column(String, nullable=True)
+    trainingPlanId = Column(Integer)
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "userId": self.userId,
+            "distance": self.distance,
+            "duration": self.duration,
+            "steps": self.steps,
+            "calories": self.calories,
+            "date": self.date,
             "trainingPlanId": self.trainingPlanId,
         }

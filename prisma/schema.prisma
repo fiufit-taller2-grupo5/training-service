@@ -77,3 +77,16 @@ model PlanReview {
 
   @@schema("training-service")
 }
+
+model UserTraining {
+  id             Int    @id @default(autoincrement())
+  distance       Float
+  duration       Int
+  steps          Int
+  calories       Int
+  date           String
+  userId         Int
+  trainingPlanId Int?
+
+  @@schema("training-service")
+}
