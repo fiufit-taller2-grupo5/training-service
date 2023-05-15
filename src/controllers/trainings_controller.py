@@ -71,6 +71,18 @@ async def get_favorite_trainings(user_id):
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
 
+@router.put("/{training_plan_id}")
+async def update_training(training_plan_id: int, request: TrainingPlanRequest):
+    training_plan = training_dal.get_training_by_id(training_plan_id)
+    if not training_plan:
+        raise HTTPException(
+            status_code=404, detail="Training plan not found")
+    training_plan.state = request.state
+    training_dal.update_training(training_plan)
+    return JSONResponse(
+        status_code=200,
+        content=training_plan.as_dict()
+    )
 
 @router.put("/{training_plan_id}/block")
 async def block_training_plan(training_plan: TrainingPlan = Depends(get_unblocked_training_plan)):
