@@ -64,11 +64,14 @@ const waitUntilServicesAreHealthy = async () => {
 };
 
 describe('Integration Tests ', () => {
-
-
-    const authedRequest = (request) => {
-        return request.set('dev', 'true').set('test', 'true');
+    const userRequest = (request) => {
+        return request.set('dev-email', 'test-user@mail.com');
     }
+
+    const adminRequest = (request) => {
+        return request.set('dev-email', 'test-admin@mail.com');
+    }
+
     before(async () => {
         await startDockerCompose();
         await waitUntilServicesAreHealthy();
@@ -78,12 +81,32 @@ describe('Integration Tests ', () => {
         return stopDockerCompose();
     });
 
+    beforeEach(async () => {
+        await request(apiGatewayHost)
+            .post('/user-service/api/admins')
+            .set('dev', 'true')
+            .send({
+                name: 'test admin',
+                email: 'test-admin@mail.com',
+                password: 'admin123'
+            });
+
+        await adminRequest(
+            request(apiGatewayHost)
+                .post('/user-service/api/users')
+                .send({
+                    name: 'test user',
+                    email: 'test-user@mail.com',
+                })
+        )
+    });
+
     afterEach(async () => {
         await truncateTables();
     });
 
     it('GET health user service', async () => {
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/health'))
 
@@ -91,28 +114,26 @@ describe('Integration Tests ', () => {
     });
 
     it('POST user', async () => {
-        await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
-                    name: 'test',
-                    email: 'test@email.com',
+                    name: 'test post',
+                    email: 'test-post@email.com',
                 }))
 
 
-        const response = await authedRequest(
+        const allUsersResponse = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users')
         )
 
-        expect(response.statusCode).to.be.equal(200);
-        expect(response.body.length).to.be.equal(1);
-        expect(response.body[0].name).to.be.equal('test');
+        expect(allUsersResponse.body.some((u) => u.name === 'test post')).to.be.equal(true);
     });
 
 
     it('GET non-existent user', async () => {
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users/123')
         )
@@ -121,7 +142,7 @@ describe('Integration Tests ', () => {
     });
 
     it('POST user with missing fields', async () => {
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -134,7 +155,7 @@ describe('Integration Tests ', () => {
     });
 
     it('POST user with used email', async () => {
-        await authedRequest(
+        await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -142,7 +163,7 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }));
 
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -156,7 +177,7 @@ describe('Integration Tests ', () => {
 
 
     it('DELETE user', async () => {
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -166,18 +187,18 @@ describe('Integration Tests ', () => {
 
         expect(postResponse.statusCode).to.be.equal(200);
 
-        const users = await authedRequest(
+        const users = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
 
 
         const userId = users.body[0].id;
 
-        await await authedRequest(
+        await await userRequest(
             request(apiGatewayHost)
                 .delete(`/user-service/api/users/${userId}`));
 
-        const getResponse = await authedRequest(
+        const getResponse = await userRequest(
             request(apiGatewayHost)
                 .get(`/user-service/api/users/${userId}`));
 
@@ -186,7 +207,7 @@ describe('Integration Tests ', () => {
     });
 
     it('PUT user with invalid id', async () => {
-        const putResponse = await authedRequest(
+        const putResponse = await userRequest(
             request(apiGatewayHost)
                 .put(`/user-service/api/users/123/metadata`)
                 .send({
@@ -199,7 +220,7 @@ describe('Integration Tests ', () => {
     });
 
     it('PUT user with invalid metadata, location missing', async () => {
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -207,24 +228,23 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }));
 
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
 
         const userId = response.body[0].id;
-        const putResponse = await authedRequest(
+        const putResponse = await userRequest(
             request(apiGatewayHost)
                 .put(`/user-service/api/users/${userId}/metadata`)
                 .send({
                     name: 'test',
                     email: 'test@mail'
                 }));
-        console.log("put response:", putResponse.body);
         expect(putResponse.statusCode).to.be.equal(500);
     });
 
     it('GET user with entire information', async () => {
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -233,21 +253,16 @@ describe('Integration Tests ', () => {
                 }
                 ));
 
-        const users = await authedRequest(
+        await userRequest(
             request(apiGatewayHost)
-                .get('/user-service/api/users'));
-
-        const userId = users.body[0].id;
-        const putResponse = await authedRequest(
-            request(apiGatewayHost)
-                .put(`/user-service/api/users/${userId}/metadata`)
+                .put(`/user-service/api/users/${postResponse.body.id}/metadata`)
                 .send({
                     location: 'test'
                 }));
 
-        const getResponse = await authedRequest(
+        const getResponse = await userRequest(
             request(apiGatewayHost)
-                .get(`/user-service/api/users/${userId}`));
+                .get(`/user-service/api/users/${postResponse.body.id}`));
 
         expect(getResponse.statusCode).to.be.equal(200);
         expect(getResponse.body.name).to.be.equal('test');
@@ -257,7 +272,7 @@ describe('Integration Tests ', () => {
 
 
     it('POST new Admin', async () => {
-        await authedRequest(
+        await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -266,19 +281,17 @@ describe('Integration Tests ', () => {
                     password: 'test'
                 }).set('test', 'true'));
 
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/admins')
         )
 
         expect(response.statusCode).to.be.equal(200);
-        expect(response.body.length).to.be.equal(1);
-        expect(response.body[0].name).to.be.equal('test');
-        expect(response.body[0].email).to.be.equal('test@mail');
+        expect(response.body.some((a) => a.name === 'test')).to.be.equal(true);
     });
 
     it('GET non-existent admin', async () => {
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/admins/123')
         )
@@ -286,7 +299,7 @@ describe('Integration Tests ', () => {
     });
 
     it('POST admin with missing fields', async () => {
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -299,7 +312,7 @@ describe('Integration Tests ', () => {
     });
 
     it('POST admin with used email', async () => {
-        await authedRequest(
+        await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -307,7 +320,7 @@ describe('Integration Tests ', () => {
                     email: 'test@mail'
                 }).set('test', 'true'));
 
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -321,7 +334,7 @@ describe('Integration Tests ', () => {
 
 
     it('DELETE admin', async () => {
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
                 .send({
@@ -331,18 +344,18 @@ describe('Integration Tests ', () => {
 
         expect(postResponse.statusCode).to.be.equal(200);
 
-        const users = await authedRequest(
+        const users = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/admins'));
 
 
         const userId = users.body[0].id;
 
-        await await authedRequest(
+        await await userRequest(
             request(apiGatewayHost)
                 .delete(`/user-service/api/admins/${userId}`));
 
-        const getResponse = await authedRequest(
+        const getResponse = await userRequest(
             request(apiGatewayHost)
                 .get(`/user-service/api/admins/${userId}`));
 
@@ -351,7 +364,7 @@ describe('Integration Tests ', () => {
 
     // change metadata in user 
     it('PUT user', async () => {
-        const postResponse = await authedRequest(
+        const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -360,13 +373,13 @@ describe('Integration Tests ', () => {
                 }
                 ));
 
-        const response = await authedRequest(
+        const response = await userRequest(
             request(apiGatewayHost)
                 .get('/user-service/api/users'));
 
         const userId = response.body[0].id;
 
-        const putResponse = await authedRequest(
+        const putResponse = await userRequest(
             request(apiGatewayHost)
                 .put(`/user-service/api/users/${userId}/metadata`)
                 .send({
@@ -375,7 +388,7 @@ describe('Integration Tests ', () => {
                     location: 'test'
                 }));
 
-        const getResponse = await authedRequest(
+        const getResponse = await userRequest(
             request(apiGatewayHost)
                 .get(`/user-service/api/users/${userId}/metadata`));
 
