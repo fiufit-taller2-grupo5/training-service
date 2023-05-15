@@ -1,10 +1,12 @@
 from db.database import training_dal
 from model.training import TrainingPlan
-from fastapi import APIRouter, Request, Response, Depends
+from fastapi import APIRouter, Request, Response, Depends, Header
 from fastapi.responses import JSONResponse
 from model.training_request import TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
 from fastapi import HTTPException
 from sqlalchemy.orm import sessionmaker
+import requests
+
 from constants import BLOCKED_STATE, ACTIVE_STATE
 router = APIRouter()
 
@@ -29,23 +31,51 @@ def get_unblocked_training_plan(training_plan_id: int):
 
 
 @router.get("/")
-async def get_all_trainigs(response: Response, type: str = None, difficulty: int = None, trainer_id: int = None, skip_blocked: bool = True):
-    result = training_dal.get_trainings(
-        type, difficulty, trainer_id, skip_blocked)
-    if result is None:
-        return JSONResponse(
-            status_code=404,
-            content={"message": "No trainings found"}
-        )
+async def get_all_trainigs(response: Response, type: str = None, difficulty: int = None, trainer_id: int = None, x_email: str = Header(None)):
+    print(f"X-Email: {x_email}")
+    user_service_url = f"http://user-service:80/api/users/by_email/{x_email}"
+    response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=404, detail="Trainer not found")
 
-    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    response.headers["X-Total-Count"] = str(len(result))
+    user = response.json()
+    result = []
+    if user["role"] == "admin":
+        result = training_dal.get_trainings(
+            type, difficulty, trainer_id, False)
+    else:
+        result = training_dal.get_trainings(
+            type, difficulty, trainer_id, True)
 
-    return result
+    headers = {"Access-Control-Expose-Headers": "X-Total-Count", "X-Total-Count": str(len(result))}
+    result = [training.as_dict() for training in result]
+
+    return JSONResponse(content=result, headers=headers)
 
 
 @router.get("/{training_plan_id}")
-async def get_training_by_id(training_plan: TrainingPlan = Depends(get_unblocked_training_plan)):
+async def get_training_by_id(training_plan_id: int, x_email: str = Header(None)):
+    print(f"X-Email: {x_email}")
+    user_service_url = f"http://user-service:80/api/users/by_email/{x_email}"
+    response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=404, detail="Trainer not found")
+
+    user = response.json()
+    print("the usre", user)
+    if user["role"] == "admin":
+        training_plan = training_dal.get_training_by_id(
+            training_plan_id, False)
+    else:
+        training_plan = training_dal.get_training_by_id(
+            training_plan_id, True)
+
     return JSONResponse(
         status_code=200,
         content=training_plan.as_dict()
@@ -72,11 +102,24 @@ async def get_favorite_trainings(user_id):
     return JSONResponse(status_code=200, content=result)
 
 @router.put("/{training_plan_id}")
-async def update_training(training_plan_id: int, request: TrainingPlanRequest):
-    training_plan = training_dal.get_training_by_id(training_plan_id)
-    if not training_plan:
+async def update_training(training_plan_id: int, request: TrainingPlanRequest, x_email: str = Header(None)):
+    user_service_url = f"http://user-service:80/api/users/by_email/{x_email}"
+    response = requests.get(user_service_url, headers={
+                                "test": "true",
+                                "dev": "true"})
+    if response.status_code != 200:
         raise HTTPException(
-            status_code=404, detail="Training plan not found")
+            status_code=404, detail="Trainer not found")
+
+    user = response.json()
+    print("the usre", user)
+    if user["role"] == "admin":
+        training_plan = training_dal.get_training_by_id(
+            training_plan_id, False)
+    else:
+        training_plan = training_dal.get_training_by_id(
+            training_plan_id, True)
+            
     training_plan.state = request.state
     training_dal.update_training(training_plan)
     return JSONResponse(

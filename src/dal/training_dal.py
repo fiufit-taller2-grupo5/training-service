@@ -18,24 +18,32 @@ class TrainingDal:
         self.engine = engine
         self.Session = sessionmaker(bind=self.engine)
 
-    def get_training_by_id(self, training_id) -> TrainingPlan:
+    def get_training_by_id(self, training_id, skip_blocked: bool = True) -> TrainingPlan:
         with self.Session() as session:
-            return session.query(TrainingPlan).filter(
+            if skip_blocked:
+                return session.query(TrainingPlan).filter(
+                    TrainingPlan.id == training_id).filter(
+                    TrainingPlan.state == ACTIVE_STATE).first()
+            else:
+                return session.query(TrainingPlan).filter(
                 TrainingPlan.id == training_id).first()
 
     def get_trainings(self, training_type: str, difficulty: str, trainer_id: int, skip_blocked: bool = True) -> List[TrainingPlan]:
         with self.Session() as session:
-            query = session.query(TrainingPlan)
-            if training_type is not None:
-                query = query.filter(TrainingPlan.type == training_type)
-            if difficulty is not None:
-                query = query.filter(TrainingPlan.difficulty == difficulty)
-            if trainer_id is not None:
-                query = query.filter(TrainingPlan.trainerId == trainer_id)
+            try: 
+                query = session.query(TrainingPlan)
+                if training_type is not None:
+                    query = query.filter(TrainingPlan.type == training_type)
+                if difficulty is not None:
+                    query = query.filter(TrainingPlan.difficulty == difficulty)
+                if trainer_id is not None:
+                    query = query.filter(TrainingPlan.trainerId == trainer_id)
 
-            if skip_blocked:
-                query = query.filter(TrainingPlan.state == ACTIVE_STATE)
-            return query.all()
+                if skip_blocked:
+                    query = query.filter(TrainingPlan.state == ACTIVE_STATE)
+                return query.all()
+            except SQLAlchemyError as e:
+                return []
 
     def add_training(self, training: TrainingPlan):
         user_service_url = f"http://user-service:80/api/users/{training.trainerId}"
