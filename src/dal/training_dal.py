@@ -46,15 +46,6 @@ class TrainingDal:
                 return []
 
     def add_training(self, training: TrainingPlan):
-        user_service_url = f"http://user-service:80/api/users/{training.trainerId}"
-        # make request with header "test" set to "true"
-        response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=404, detail="Trainer not found")
-        # check if the training.type is valid using the enum in the db
         try:
             with self.Session() as session:
                 session.add(training)
@@ -177,19 +168,6 @@ class TrainingDal:
                 if not distance or not duration or not steps or not calories or not date:
                     raise HTTPException(
                         status_code=400, detail="Missing required fields (distance, duration, steps, calories or date)")
-
-                if training_plan_id:
-                    if session.query(TrainingPlan).filter(TrainingPlan.id == training_plan_id).count() == 0:
-                        raise HTTPException(
-                            status_code=404, detail="Training plan not found")
-
-                user_service_url = f"http://user-service:80/api/users/{user_id}"
-                response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
-                if response.status_code != 200:
-                    raise HTTPException(
-                        status_code=404, detail="User not found")
 
                 if distance < 0 or duration < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
