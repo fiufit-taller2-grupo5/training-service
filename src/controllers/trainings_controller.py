@@ -69,6 +69,18 @@ async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unb
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
+@router.delete("/{training_plan_id}/favorite/{user_id}")
+async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
+    try:
+        result = training_dal.delete_training_from_favorite(
+            training_plan.id, user_id)
+    except:
+        raise HTTPException(
+            status_code=500, detail="Could not remove from favorites")
+    return JSONResponse(status_code=200, content=result.as_dict())
+
+
+
 @router.get("/favorites/{user_id}")
 async def get_favorite_trainings(user_id):
     try:

@@ -92,6 +92,25 @@ class TrainingDal:
                 raise HTTPException(
                     status_code=500, detail="Something went wrong")
 
+    def delete_training_from_favorite(self, training_id: int, user_id: int):
+        with self.Session() as session:
+            try:
+                user_favorite_training_plan = session.query(UserFavoriteTrainingPlan).filter(
+                    UserFavoriteTrainingPlan.userId == user_id).filter(
+                    UserFavoriteTrainingPlan.trainingPlanId == training_id).first()
+                session.delete(user_favorite_training_plan)
+                session.commit()
+                session.refresh(user_favorite_training_plan)
+                return user_favorite_training_plan
+            except IntegrityError:
+                session.rollback()
+                raise HTTPException(
+                    status_code=404, detail="User or training not found")
+            except:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail="Something went wrong")
+                     
     def get_favorite_trainings(self, user_id: int):
         with self.Session() as session:
             trainings = session.query(TrainingPlan).join(UserFavoriteTrainingPlan, UserFavoriteTrainingPlan.trainingPlanId == TrainingPlan.id) \
