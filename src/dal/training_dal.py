@@ -104,10 +104,10 @@ class TrainingDal:
                 session.rollback()
                 raise HTTPException(
                     status_code=404, detail="Training not found")
-            except:
+            except Exception as e:
                 session.rollback()
                 raise HTTPException(
-                    status_code=500, detail="Something went wrong")
+                    status_code=500, detail=f"Something went wrong: {e}")
 
     def delete_training_from_favorite(self, training_id: int, user_id: int):
         print(f"deleting training {training_id} from user {user_id}")
