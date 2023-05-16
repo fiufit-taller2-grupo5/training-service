@@ -69,6 +69,12 @@ async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unb
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
+@router.delete("/{training_plan_id}")
+async def delete_training(training_plan_id: int):
+    training_dal.delete_training(training_plan_id)
+    return JSONResponse(status_code=200, content={"message": "Training deleted successfully"})
+
+
 @router.delete("/{training_plan_id}/favorite/{user_id}")
 async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
     try:

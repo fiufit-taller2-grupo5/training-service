@@ -92,6 +92,23 @@ class TrainingDal:
                 raise HTTPException(
                     status_code=500, detail="Something went wrong")
 
+    def delete_training(self, training_id: int):
+        with self.Session() as session:
+            try:
+                training = session.query(TrainingPlan).filter(
+                    TrainingPlan.id == training_id).first()
+                session.delete(training)
+                session.commit()
+                return training
+            except IntegrityError:
+                session.rollback()
+                raise HTTPException(
+                    status_code=404, detail="Training not found")
+            except:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail="Something went wrong")
+
     def delete_training_from_favorite(self, training_id: int, user_id: int):
         print(f"deleting training {training_id} from user {user_id}")
         with self.Session() as session:
