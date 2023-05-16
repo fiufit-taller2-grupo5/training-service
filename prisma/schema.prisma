@@ -53,7 +53,7 @@ model Multimedia {
   fileUrl        String
   type           String
   trainingPlanId Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@schema("training-service")
 }
@@ -61,7 +61,7 @@ model Multimedia {
 model UserFavoriteTrainingPlan {
   userId         Int
   trainingPlanId Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([userId, trainingPlanId])
   @@schema("training-service")
@@ -74,7 +74,7 @@ model PlanReview {
   comment        String?
   score          Int
   trainingPlanId Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@schema("training-service")
 }
@@ -88,7 +88,7 @@ model UserTraining {
   date           String
   userId         Int
   trainingPlanId Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@schema("training-service")
 }
