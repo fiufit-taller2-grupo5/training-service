@@ -128,9 +128,6 @@ describe('Integration Tests ', () => {
       })
 
     testTrainer = response3.body;
-    console.log("the test trainer:", testTrainer)
-    console.log("the test user:", testUser)
-    console.log("the test user2:", testUser2)
   })
 
   afterEach(async () => {
@@ -182,7 +179,6 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
-    console.log("the response:", response.body)
     const trainingId = response.body.id;
     const training = await authedRequest(
       request(apiGatewayHost)
@@ -199,7 +195,6 @@ describe('Integration Tests ', () => {
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/1`)
     );
-    console.log("the training:", training)
     expect(training.statusCode).to.be.equal(404);
     expect(training.body).to.have.property('message', 'Training plan not found');
   });
@@ -258,14 +253,7 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
-
-    const users = await authedRequest(
-      request(apiGatewayHost)
-        .get('/user-service/api/users')
-    );
-
     const trainingId = response.body.id;
-    const userId = users.body[0].id;
 
     const favorite = await authedRequest(
       request(apiGatewayHost)
@@ -310,24 +298,24 @@ describe('Integration Tests ', () => {
 
     let res = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId1}/favorite/1`)
+        .post(`/training-service/api/trainings/${trainingId1}/favorite/${testUser.id}`)
     );
     expect(res.statusCode).to.be.equal(200);
-    expect(res.body).to.have.property('userId', 1);
+    expect(res.body).to.have.property('userId', testUser.id);
     expect(res.body).to.have.property('trainingPlanId', trainingId1);
 
     res = await authedRequest(
       request(apiGatewayHost)
-        .post(`/training-service/api/trainings/${trainingId2}/favorite/1`)
+        .post(`/training-service/api/trainings/${trainingId2}/favorite/${testUser.id}`)
     );
 
     expect(res.statusCode).to.be.equal(200);
-    expect(res.body).to.have.property('userId', 1);
+    expect(res.body).to.have.property('userId', testUser.id);
     expect(res.body).to.have.property('trainingPlanId', trainingId2);
 
     const favorites = await authedRequest(
       request(apiGatewayHost)
-        .get(`/training-service/api/trainings/favorites/1`)
+        .get(`/training-service/api/trainings/favorites/${testUser.id}`)
     );
     expect(favorites.statusCode).to.be.equal(200);
     expect(favorites.body).to.have.lengthOf(2);
@@ -363,7 +351,6 @@ describe('Integration Tests ', () => {
         })
     );
 
-    console.log("the review1 response:", review.body);
     expect(review.statusCode).to.be.equal(200);
     expect(review.body).to.have.property('userId', testUser.id);
     expect(review.body).to.have.property('trainingPlanId', trainingId);
@@ -397,7 +384,7 @@ describe('Integration Tests ', () => {
         })
     );
 
-    console.log("the review1 response:", review.body);
+
 
     const review2 = await authedRequest(
       request(apiGatewayHost)
@@ -407,8 +394,6 @@ describe('Integration Tests ', () => {
           comment: 'Test comment'
         })
     );
-    console.log("re reviewer 2", testUser2)
-    console.log("the review2 response:", review2.body);
 
     const reviews = await authedRequest(
       request(apiGatewayHost)
@@ -539,7 +524,6 @@ describe('Integration Tests ', () => {
         )
     );
 
-    console.log("the response!:", response.body)
     expect(response.statusCode).to.be.equal(200);
     expect(response.body).to.have.property('userId', testUser.id);
     expect(response.body).to.have.property('distance', 15);
@@ -674,7 +658,6 @@ describe('Integration Tests ', () => {
         .get(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
     );
 
-    console.log("what? really?:", response.body);
     // expect(response.statusCode).to.be.equal(200);
     // expect(response.body).to.be.an('array');
     // expect(response.body).to.have.lengthOf(2);

@@ -141,6 +141,17 @@ describe('Integration Tests ', () => {
         expect(response.statusCode).to.be.equal(404);
     });
 
+    it('GET all users', async () => {
+        const response = await userRequest(
+            request(apiGatewayHost)
+                .get('/user-service/api/users')
+        )
+
+        console.log(response.body)
+        expect(response.statusCode).to.be.equal(200);
+        expect(response.body.length).to.be.equal(1);
+    });
+
     it('POST user with missing fields', async () => {
         const response = await userRequest(
             request(apiGatewayHost)
