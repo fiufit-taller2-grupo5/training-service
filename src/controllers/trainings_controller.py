@@ -74,9 +74,10 @@ async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unb
     try:
         result = training_dal.delete_training_from_favorite(
             training_plan.id, user_id)
-    except:
+    except Exception as e:
+        print(f"{e}")
         raise HTTPException(
-            status_code=500, detail="Could not remove from favorites")
+            status_code=500, detail=f"Could not remove from favorites")
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
