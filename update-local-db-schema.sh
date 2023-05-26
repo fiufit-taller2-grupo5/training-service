@@ -51,7 +51,7 @@ db_name="postgres"
 echo "Waiting for database to be ready..."
 while :
 do
-  output=$(docker exec -e PGPASSWORD="$db_password" -it "$container_name" psql -h "$db_host" -p "$db_local_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" 2>&1)
+  output=$(docker exec -e PGPASSWORD="$db_password" "$container_name" psql -h "$db_host" -p "$db_local_port" -U "$db_user" -w -d "$db_name" -c "SELECT 1" 2>&1)
   if [ $? -eq 0 ]; then
     break
   else
