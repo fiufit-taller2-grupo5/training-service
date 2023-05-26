@@ -410,6 +410,7 @@ describe('Integration Tests ', function () {
         expect(getResponse.statusCode).to.be.equal(200);
         expect(getResponse.body.location).to.be.equal('test');
     });
+
     it('blocked user cannot do anything', async () => {
         const { body } = await userRequest(
             request(apiGatewayHost)
@@ -446,13 +447,9 @@ describe('Integration Tests ', function () {
 
         const responses = await Promise.all(requests);
 
-        // Check each response to make sure it has the expected status and message
         responses.forEach(response => {
             expect(response.statusCode).to.be.equal(403);
             expect(response.body.message).to.be.equal('you do not have access to the system');
         });
     });
-
-
-
 });

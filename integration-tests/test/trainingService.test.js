@@ -179,11 +179,13 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
+    console.log("post response", response.body);
     const trainingId = response.body.id;
     const training = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/${trainingId}`)
     );
+    console.log("get response", training);
     expect(training.statusCode).to.be.equal(200);
     expect(training.body).to.have.property('title', 'Test plan');
     expect(training.body).to.have.property('type', 'Running');
@@ -561,22 +563,22 @@ describe('Integration Tests ', () => {
     expect(response.statusCode).to.be.equal(400);
     expect(response.body).to.have.property('message', 'Distance, duration, steps and calories must be positive');
 
-    // const response2 = await authedRequest(
-    //   request(apiGatewayHost)
-    //     .post(`/training-service/api/trainings/${training.body.id}/user_training/4000`)
-    //     .send(
-    //       {
-    //         "distance": 1,
-    //         "calories": 1,
-    //         "duration": 1,
-    //         "date": 1,
-    //         "steps": 1
-    //       }
-    //     )
-    // );
+    const response2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/4000`)
+        .send(
+          {
+            "distance": 1,
+            "calories": 1,
+            "duration": 1,
+            "date": 1,
+            "steps": 1
+          }
+        )
+    );
 
-    // expect(response2.statusCode).to.be.equal(400);
-    // expect(response2.body).to.have.property('message', 'User not found');
+    expect(response2.statusCode).to.be.equal(404);
+    expect(response2.body).to.have.property('message', 'User not found');
 
     const response3 = await authedRequest(
       request(apiGatewayHost)
@@ -591,23 +593,23 @@ describe('Integration Tests ', () => {
     expect(response3.body).to.have.property('message', 'Missing required fields (distance, duration, steps, calories or date)');
 
 
-    // const response4 = await authedRequest(
-    //   request(apiGatewayHost)
-    //     .post(`/training-service/api/trainings/${training.body.id}/user_training/4000`)
-    //     .send(
-    //       {
-    //         "distance": -8,
-    //         "calories": -8,
-    //         "duration": -8,
-    //         "date": -8,
-    //         "steps": -8,
-    //         "trainingPlanId": 155555
-    //       }
-    //     )
-    // );
+    const response4 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/12312313/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 1,
+            "calories": 1,
+            "duration": 1,
+            "date": 1,
+            "steps": 1
+          }
+        )
+    );
 
-    // expect(response4.statusCode).to.be.equal(404);
-    // expect(response4.body).to.have.property('message', 'Training plan not found');
+    console.log("response4", response4);
+    expect(response4.statusCode).to.be.equal(404);
+    expect(response4.body).to.have.property('message', 'Training plan not found');
   });
 
   it("GET user trainings", async () => {
