@@ -11,22 +11,31 @@ from constants import BLOCKED_STATE, ACTIVE_STATE
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
-
 class TrainingDal:
 
     def __init__(self, engine):
         self.engine = engine
         self.Session = sessionmaker(bind=self.engine)
 
-    def get_training_by_id(self, training_id, skip_blocked: bool = True) -> TrainingPlan:
+    def get_training_plan_by_id(self, training_id, skip_blocked: bool = True) -> TrainingPlan:
+        training_plan = None
         with self.Session() as session:
-            if skip_blocked:
-                return session.query(TrainingPlan).filter(
-                    TrainingPlan.id == training_id).filter(
-                    TrainingPlan.state == ACTIVE_STATE).first()
-            else:
-                return session.query(TrainingPlan).filter(
-                TrainingPlan.id == training_id).first()
+            try: 
+                if skip_blocked:
+                    training_plan = session.query(TrainingPlan).filter(
+                        TrainingPlan.id == training_id).filter(
+                        TrainingPlan.state == ACTIVE_STATE).first()
+                else:
+                    training_plan = session.query(TrainingPlan).filter(
+                    TrainingPlan.id == training_id).first()
+            except SQLAlchemyError as e:
+               raise HTTPException(
+                status_code=404, detail="Training plan not found")  
+            
+            if not training_plan:
+                raise HTTPException(
+                    status_code=404, detail="Training plan not found")
+            return training_plan
 
     def get_trainings(self, training_type: str, difficulty: str, trainer_id: int, skip_blocked: bool = True) -> List[TrainingPlan]:
         with self.Session() as session:
@@ -285,14 +294,6 @@ class TrainingDal:
 
     def get_user_trainings(self, user_id: int):
         with self.Session() as session:
-            user_service_url = f"http://user-service:80/api/users/{user_id}"
-            response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=404, detail="User not found")
-
             user_trainings = session.query(UserTraining).filter(
                 UserTraining.userId == user_id).all()
             if not user_trainings:

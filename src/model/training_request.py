@@ -21,4 +21,3 @@ class UserTrainingRequest(BaseModel):
     steps: int = None
     calories: int = None
     date: str = None
-    trainingPlanId: int = None

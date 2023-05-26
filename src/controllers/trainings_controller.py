@@ -6,6 +6,7 @@ from model.training_request import TrainingPlanRequest, PlanReviewRequest, UserT
 from fastapi import HTTPException
 from sqlalchemy.orm import sessionmaker
 import requests
+from services.user_service import check_if_user_exists_by_id
 
 from constants import BLOCKED_STATE, ACTIVE_STATE
 router = APIRouter()
@@ -13,7 +14,7 @@ router = APIRouter()
 
 def get_unblocked_training_plan(training_plan_id: int):
     # Initialize a new session
-    training_plan = training_dal.get_training_by_id(training_plan_id)
+    training_plan = training_dal.get_training_plan_by_id(training_plan_id)
 
     if not training_plan:
         raise HTTPException(
@@ -44,8 +45,8 @@ async def get_all_trainigs(response: Response, type: str = None, difficulty: int
 
 
 @router.get("/{training_plan_id}")
-async def get_training_by_id(training_plan_id: int, x_role: str = Header(None)):
-    training_plan = training_dal.get_training_by_id(
+async def get_training_plan_by_id(training_plan_id: int, x_role: str = Header(None)):
+    training_plan = training_dal.get_training_plan_by_id(
         training_plan_id, x_role == "user")
 
     if not training_plan:
@@ -61,6 +62,7 @@ async def get_training_by_id(training_plan_id: int, x_role: str = Header(None)):
 @router.post("/{training_plan_id}/favorite/{user_id}")
 async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.add_training_to_favorite(
             training_plan.id, user_id)
     except:
@@ -78,6 +80,7 @@ async def delete_training(training_plan_id: int):
 @router.delete("/{training_plan_id}/favorite/{user_id}")
 async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.delete_training_from_favorite(
             training_plan.id, user_id)
     except Exception as e:
@@ -91,6 +94,7 @@ async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unb
 @router.get("/favorites/{user_id}")
 async def get_favorite_trainings(user_id):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.get_favorite_trainings(user_id)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
@@ -109,10 +113,10 @@ async def update_training(training_plan_id: int, request: TrainingPlanRequest, x
     user = response.json()
     print("the usre", user)
     if user["role"] == "admin":
-        training_plan = training_dal.get_training_by_id(
+        training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, False)
     else:
-        training_plan = training_dal.get_training_by_id(
+        training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, True)
             
     training_plan.state = request.state
@@ -134,7 +138,7 @@ async def block_training_plan(training_plan: TrainingPlan = Depends(get_unblocke
 
 @router.put("/{training_plan_id}/unblock")
 async def unblock_training_plan(training_plan_id):
-    training_plan = training_dal.get_training_by_id(training_plan_id)
+    training_plan = training_dal.get_training_plan_by_id(training_plan_id)
 
     # If the training plan doesn't exist
     if not training_plan:
@@ -180,6 +184,7 @@ async def add_training(training_request: TrainingPlanRequest):
 @router.post("/{training_plan_id}/review/{user_id}")
 async def add_training_review(training_plan_id: int, user_id: int, request: PlanReviewRequest):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.add_training_review(
             training_plan_id, user_id, request.score, str(request.comment))
     except HTTPException as e:
@@ -199,6 +204,8 @@ async def get_training_reviews(training_plan_id: int):
 @router.post("/{training_plan_id}/user_training/{user_id}")
 async def add_user_training(training_plan_id: int, user_id: int, request: UserTrainingRequest):
     try:
+        check_if_user_exists_by_id(user_id)
+        training_dal.get_training_plan_by_id(training_plan_id)
         result = training_dal.add_user_training(
             user_id, training_plan_id, request.distance, request.duration, request.steps, request.calories, request.date)
     except HTTPException as e:
@@ -209,6 +216,7 @@ async def add_user_training(training_plan_id: int, user_id: int, request: UserTr
 @router.get("/user_training/{user_id}/average")
 async def get_user_trainings(user_id: int):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_training_average(user_id)
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
@@ -218,6 +226,7 @@ async def get_user_trainings(user_id: int):
 @router.get("/user_training/{user_id}/total")
 async def get_user_trainings(user_id: int):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_training_total(user_id)
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
@@ -227,6 +236,7 @@ async def get_user_trainings(user_id: int):
 @router.get("/user_training/{user_id}")
 async def get_user_trainings(user_id: int):
     try:
+        check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_trainings(user_id)
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
