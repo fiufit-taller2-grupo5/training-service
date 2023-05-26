@@ -63,7 +63,10 @@ const waitUntilServicesAreHealthy = async () => {
     }
 };
 
-describe('Integration Tests ', () => {
+describe('Integration Tests ', function () {
+
+    this.timeout(1000000);
+
     const userRequest = (request) => {
         return request.set('dev-email', 'test-user@mail.com');
     }
@@ -190,11 +193,11 @@ describe('Integration Tests ', () => {
         const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
+                .timeout(10000)
                 .send({
                     name: 'test',
                     email: 'test@email.com',
-                })
-                .timeout(10000));
+                }));
 
         console.log("DELETE USER POST RESPONSE", postResponse);
         expect(postResponse.statusCode).to.be.equal(200);
