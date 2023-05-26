@@ -1,5 +1,8 @@
 name: Repository Dispatch
 on:
+  push:
+    branches:
+      - master
   repository_dispatch:
     types: [run-integration-tests]
 jobs:
