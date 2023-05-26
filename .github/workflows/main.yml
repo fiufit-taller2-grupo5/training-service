@@ -25,3 +25,4 @@ jobs:
           cd user-service/integration-tests
           chmod +x run-tests.sh
           ./run-tests.sh user-service
+          
