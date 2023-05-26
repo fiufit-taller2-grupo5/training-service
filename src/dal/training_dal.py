@@ -292,6 +292,14 @@ class TrainingDal:
                 "calories": float(user_training_totals[3])
             }
 
+    def get_user_trainings_of_training_plan(self, user_id: int, training_plan_id):
+        with self.Session() as session:
+            user_trainings = session.query(UserTraining).filter(
+                UserTraining.userId == user_id).filter(UserTraining.trainingPlanId == training_plan_id).all()
+            if not user_trainings:
+                return []
+            return [training.as_dict() for training in user_trainings]
+
     def get_user_trainings(self, user_id: int):
         with self.Session() as session:
             user_trainings = session.query(UserTraining).filter(

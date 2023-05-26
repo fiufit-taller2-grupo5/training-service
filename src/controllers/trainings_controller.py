@@ -213,8 +213,20 @@ async def add_user_training(training_plan_id: int, user_id: int, request: UserTr
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
+@router.get("/{training_plan_id}/user_training/{user_id}")
+async def get_user_trainings_of_training_plan(training_plan_id: int, user_id: int):
+    try:
+        check_if_user_exists_by_id(user_id)
+        training_dal.get_training_plan_by_id(training_plan_id)
+        result = training_dal.get_user_trainings_of_training_plan(
+            user_id, training_plan_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result)
+
+
 @router.get("/user_training/{user_id}/average")
-async def get_user_trainings(user_id: int):
+async def get_user_trainings_average(user_id: int):
     try:
         check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_training_average(user_id)
@@ -224,7 +236,7 @@ async def get_user_trainings(user_id: int):
 
 
 @router.get("/user_training/{user_id}/total")
-async def get_user_trainings(user_id: int):
+async def get_user_trainings_total(user_id: int):
     try:
         check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_training_total(user_id)
