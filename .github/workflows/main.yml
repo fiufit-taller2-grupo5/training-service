@@ -10,3 +10,15 @@ jobs:
         with:
           ref: ${{ github.event.client_payload.ref }}
       - run: echo ${{ github.event.client_payload.sha }}
+
+      - name: Checkout user-service
+        uses: actions/checkout@v2
+        with:
+          repository: org-name/user-service
+          token: ${{ secrets.PAT }}
+
+      - name: Change directory to integration-tests and run tests
+        run: |
+          cd user-service/integration-tests
+          chmod +x run-tests.sh
+          ./run-tests.sh user-service
