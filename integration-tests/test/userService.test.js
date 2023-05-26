@@ -195,7 +195,7 @@ describe('Integration Tests ', () => {
                     email: 'test@email.com',
                 }));
 
-        console.log("DELETE USER POST RESPONSE", postResponse.body);
+        console.log("DELETE USER POST RESPONSE", postResponse);
         expect(postResponse.statusCode).to.be.equal(200);
 
         const users = await userRequest(
