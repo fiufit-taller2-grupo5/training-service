@@ -1,4 +1,4 @@
-name: Repository Dispatch
+name: Integration tests
 on:
   repository_dispatch:
     types: [run-integration-tests]
