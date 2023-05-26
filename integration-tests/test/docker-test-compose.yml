@@ -31,21 +31,6 @@ services:
     depends_on:
       - postgres-service
 
-  admin-frontend:
-    build:
-      context: ../../../web-app
-      dockerfile: dev.Dockerfile
-    ports:
-      - "3001:80"
-    image: admin-frontend-dev
-    volumes:
-      - ../../../web-app/src:/app/src
-      - ../../../web-app/index.html:/app/index.html
-      - ../../../web-app/public:/app/public
-      - ../../../web-app/vite.config.ts:/app/vite.config.ts
-    networks:
-      - test_network
-
   api-gateway:
     build:
       context: ../../../api-gateway
