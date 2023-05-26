@@ -179,13 +179,11 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
-    console.log("post response", response.body);
     const trainingId = response.body.id;
     const training = await authedRequest(
       request(apiGatewayHost)
         .get(`/training-service/api/trainings/${trainingId}`)
     );
-    console.log("get response", training);
     expect(training.statusCode).to.be.equal(200);
     expect(training.body).to.have.property('title', 'Test plan');
     expect(training.body).to.have.property('type', 'Running');
@@ -607,12 +605,11 @@ describe('Integration Tests ', () => {
         )
     );
 
-    console.log("response4", response4);
     expect(response4.statusCode).to.be.equal(404);
     expect(response4.body).to.have.property('message', 'Training plan not found');
   });
 
-  it("GET user trainings", async () => {
+  it("GET user trainings of a specific training plan", async () => {
 
     const training = await authedRequest(
       request(apiGatewayHost)
@@ -660,12 +657,79 @@ describe('Integration Tests ', () => {
         .get(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
     );
 
-    // expect(response.statusCode).to.be.equal(200);
-    // expect(response.body).to.be.an('array');
-    // expect(response.body).to.have.lengthOf(2);
-    // expect(response.body[0]).to.have.property('distance', 20);
-    // expect(response.body[1]).to.have.property('distance', 10);
+    expect(response.statusCode).to.be.equal(200);
+    expect(response.body).to.be.an('array');
+    expect(response.body).to.have.lengthOf(2);
+    expect(response.body[0]).to.have.property('distance', 20);
+    expect(response.body[1]).to.have.property('distance', 10);
   });
 
 
+  it("GET all user trainings", async () => {
+
+    const training = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 1,
+          state: 'active',
+          trainerId: testTrainer.id
+        })
+    );
+
+    const training2 = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .send({
+          title: 'Test plan swimming',
+          type: 'Swimming',
+          description: 'Test description swim',
+          difficulty: 3,
+          state: 'active',
+          trainerId: testTrainer.id
+        })
+    );
+
+    const training_session1 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 20,
+            "calories": 15,
+            "duration": 15,
+            "date": 15,
+            "steps": 15
+          }
+        )
+    );
+
+    const training_session2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training2.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 100,
+            "calories": 12,
+            "duration": 150,
+            "date": 15,
+            "steps": 15
+          }
+        )
+    );
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/${testUser.id}`)
+    );
+
+    expect(response.statusCode).to.be.equal(200);
+    expect(response.body).to.be.an('array');
+    expect(response.body).to.have.lengthOf(2);
+    expect(response.body[0]).to.have.property('distance', 20);
+    expect(response.body[1]).to.have.property('distance', 100);
+  });
 });
