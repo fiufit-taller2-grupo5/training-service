@@ -22,6 +22,6 @@ jobs:
 
       - name: Change directory to integration-tests and run tests
         run: |
-          cd user-service/integration-tests
+          cd integration-tests
           chmod +x run-tests.sh
-          ./run-tests.sh user-service
+          ./run-tests.sh user
