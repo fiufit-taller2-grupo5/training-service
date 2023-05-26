@@ -12,13 +12,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.client_payload.ref }}
+          path: development-setup
       - run: echo ${{ github.event.client_payload.sha }}
 
       - name: Checkout user-service
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: fiufit-taller2-grupo5/user-service
           token: ${{ secrets.PAT }}
+          path: user-service
 
       - name: Change directory to integration-tests and run tests
         run: |
