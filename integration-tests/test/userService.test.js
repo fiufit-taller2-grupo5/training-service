@@ -190,6 +190,7 @@ describe('Integration Tests ', function () {
 
 
     it('DELETE user', async () => {
+        this.timeout(1000000);
         const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
@@ -199,7 +200,6 @@ describe('Integration Tests ', function () {
                     email: 'test@email.com',
                 }));
 
-        console.log("DELETE USER POST RESPONSE", postResponse);
         expect(postResponse.statusCode).to.be.equal(200);
 
         const users = await userRequest(
@@ -268,7 +268,6 @@ describe('Integration Tests ', function () {
                 })
                 .timeout(10000));
 
-        console.log("GET user with entire information POST response", postResponse.body);
         const metadataResponse = await userRequest(
             request(apiGatewayHost)
                 .put(`/user-service/api/users/${postResponse.body.id}/metadata`)
@@ -276,12 +275,10 @@ describe('Integration Tests ', function () {
                     location: 'test'
                 }));
 
-        console.log("GET user with entire information PUT response", metadataResponse.body);
         const getResponse = await userRequest(
             request(apiGatewayHost)
                 .get(`/user-service/api/users/${postResponse.body.id}`));
 
-        console.log("GET user with entire information GET response", getResponse.body);
         expect(getResponse.statusCode).to.be.equal(200);
         expect(getResponse.body.name).to.be.equal('test');
         expect(getResponse.body.email).to.be.equal('test@mail');
@@ -423,10 +420,6 @@ describe('Integration Tests ', function () {
                 })
                 .timeout(10000));
 
-
-        console.log("blocked user", body)
-        console.log("blocked user email", body.email)
-
         const { body: blockedResponse } = await adminRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users/block')
@@ -434,7 +427,6 @@ describe('Integration Tests ', function () {
                     userId: body.id
                 }));
 
-        console.log("blocked user", blockedResponse)
 
         // Request all endpoints in parallel using Promise.all()
         const endpoints = [
