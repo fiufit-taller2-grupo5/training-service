@@ -282,7 +282,7 @@ describe('Integration Tests ', () => {
     });
 
 
-    it('POST new Admin', async () => {
+    it('create new Admin', async () => {
         await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
@@ -309,7 +309,7 @@ describe('Integration Tests ', () => {
         expect(response.statusCode).to.be.equal(404);
     });
 
-    it('POST admin with missing fields', async () => {
+    it('try to create admin with missing fields', async () => {
         const response = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
@@ -322,7 +322,7 @@ describe('Integration Tests ', () => {
         expect(response.body.error).to.be.equal('Missing name or email');
     });
 
-    it('POST admin with used email', async () => {
+    it('try to create admin with used email', async () => {
         await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/admins')
@@ -374,7 +374,7 @@ describe('Integration Tests ', () => {
     });
 
     // change metadata in user 
-    it('PUT user', async () => {
+    it('change user metadata', async () => {
         const postResponse = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
@@ -406,6 +406,50 @@ describe('Integration Tests ', () => {
         expect(getResponse.statusCode).to.be.equal(200);
         expect(getResponse.body.location).to.be.equal('test');
     });
+    it('blocked user cannot do anything', async () => {
+        const { body: { id: newUserId, email } } = await userRequest(
+            request(apiGatewayHost)
+                .post('/user-service/api/users')
+                .send({
+                    name: 'test2',
+                    email: 'test2@mail'
+                }
+                ));
+
+        const { body: blockedUser } = await adminRequest(
+            request(apiGatewayHost)
+                .post('/user-service/api/users/block')
+                .send({
+                    userId: newUserId
+                }));
+
+        console.log("blocked user", email)
+
+        // Request all endpoints in parallel using Promise.all()
+        const endpoints = [
+            '/user-service/api/users',
+            `/user-service/api/users/${newUserId}`,
+            '/user-service/api/users/interests',
+            '/training-service/api/trainings',
+            '/training-service/api/trainings/1',
+            '/training-service/api/trainings/1/favorite/1',
+        ];
+
+        const requests = endpoints.map(endpoint =>
+            request(apiGatewayHost)
+                .get(endpoint)
+                .set('dev-email', email)
+        );
+
+        const responses = await Promise.all(requests);
+
+        // Check each response to make sure it has the expected status and message
+        responses.forEach(response => {
+            expect(response.statusCode).to.be.equal(403);
+            expect(response.body.message).to.be.equal('you do not have access to the system');
+        });
+    });
+
 
 
 });
