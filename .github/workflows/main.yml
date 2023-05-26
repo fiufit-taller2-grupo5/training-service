@@ -22,6 +22,13 @@ jobs:
           token: ${{ secrets.PAT }}
           path: user-service
 
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'  # specify the Node.js version here
+
       - name: Change directory to integration-tests and run tests
         run: |
-          ls
+          cd development-setup/integration-tests
+          npm install
+          ./run-tests.sh user
