@@ -17,4 +17,7 @@ opcional
 - cada vez que quieras actualizar todos los repos al mismo tiempo, ejecutar ./development-setup/pull-all-repos.sh desde dentro de la carpeta de development-setup
 - cada vez que quieras hacer pushear en todos los repos al mismo tiempo, ejecutar ./development-setup/push-all-repos.sh desde dentro de la carpeta de development-setup
 
+# Current Integration tests status:
+![example workflow](https://github.com/fiufit-taller2-grupo5/development-setup/actions/workflows/main.yml/badge.svg)
+
 
