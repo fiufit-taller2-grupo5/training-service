@@ -193,7 +193,8 @@ describe('Integration Tests ', () => {
                 .send({
                     name: 'test',
                     email: 'test@email.com',
-                }));
+                })
+                .timeout(10000));
 
         console.log("DELETE USER POST RESPONSE", postResponse);
         expect(postResponse.statusCode).to.be.equal(200);
@@ -261,8 +262,8 @@ describe('Integration Tests ', () => {
                 .send({
                     name: 'test',
                     email: 'test@mail'
-                }
-                ));
+                })
+                .timeout(10000));
 
         console.log("GET user with entire information POST response", postResponse.body);
         const metadataResponse = await userRequest(
@@ -416,8 +417,8 @@ describe('Integration Tests ', () => {
                 .send({
                     name: 'test2',
                     email: 'test2@mail'
-                }
-                ));
+                })
+                .timeout(10000));
 
 
         console.log("blocked user", body)
