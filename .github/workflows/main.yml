@@ -17,7 +17,7 @@ jobs:
       - name: Checkout user-service
         uses: actions/checkout@v2
         with:
-          repository: org-name/user-service
+          repository: fiufit-taller2-grupo5/user-service
           token: ${{ secrets.PAT }}
 
       - name: Change directory to integration-tests and run tests
@@ -25,4 +25,3 @@ jobs:
           cd user-service/integration-tests
           chmod +x run-tests.sh
           ./run-tests.sh user-service
-          
