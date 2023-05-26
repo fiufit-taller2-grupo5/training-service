@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import sessionmaker
 import requests
 from services.user_service import check_if_user_exists_by_id
+from services.metrics_service import send_system_metric
 
 from constants import BLOCKED_STATE, ACTIVE_STATE
 router = APIRouter()
@@ -166,6 +167,7 @@ async def add_training(training_request: TrainingPlanRequest):
     )
     try:
         result = training_dal.add_training(training)
+        send_system_metric("training_plan_created")
         return JSONResponse(
             status_code=200,
             content=result.as_dict()
