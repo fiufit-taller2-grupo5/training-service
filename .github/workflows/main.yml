@@ -1,10 +1,11 @@
 name: Repository Dispatch
 on:
+  repository_dispatch:
+    types: [run-integration-tests]
   push:
     branches:
       - master
-  repository_dispatch:
-    types: [run-integration-tests]
+      - main
 jobs:
   myEvent:
     runs-on: ubuntu-latest
