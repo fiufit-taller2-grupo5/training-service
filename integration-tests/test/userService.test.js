@@ -147,7 +147,6 @@ describe('Integration Tests ', () => {
                 .get('/user-service/api/users')
         )
 
-        console.log(response.body)
         expect(response.statusCode).to.be.equal(200);
         expect(response.body.length).to.be.equal(1);
     });
@@ -196,6 +195,7 @@ describe('Integration Tests ', () => {
                     email: 'test@email.com',
                 }));
 
+        console.log("DELETE USER POST RESPONSE", postResponse.body);
         expect(postResponse.statusCode).to.be.equal(200);
 
         const users = await userRequest(
@@ -264,17 +264,20 @@ describe('Integration Tests ', () => {
                 }
                 ));
 
-        await userRequest(
+        console.log("GET user with entire information POST response", postResponse.body);
+        const metadataResponse = await userRequest(
             request(apiGatewayHost)
                 .put(`/user-service/api/users/${postResponse.body.id}/metadata`)
                 .send({
                     location: 'test'
                 }));
 
+        console.log("GET user with entire information PUT response", metadataResponse.body);
         const getResponse = await userRequest(
             request(apiGatewayHost)
                 .get(`/user-service/api/users/${postResponse.body.id}`));
 
+        console.log("GET user with entire information GET response", getResponse.body);
         expect(getResponse.statusCode).to.be.equal(200);
         expect(getResponse.body.name).to.be.equal('test');
         expect(getResponse.body.email).to.be.equal('test@mail');
@@ -407,7 +410,7 @@ describe('Integration Tests ', () => {
         expect(getResponse.body.location).to.be.equal('test');
     });
     it('blocked user cannot do anything', async () => {
-        const { body: { id: newUserId, email } } = await userRequest(
+        const { body } = await userRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users')
                 .send({
@@ -416,19 +419,23 @@ describe('Integration Tests ', () => {
                 }
                 ));
 
-        const { body: blockedUser } = await adminRequest(
+
+        console.log("blocked user", body)
+        console.log("blocked user email", body.email)
+
+        const { body: blockedResponse } = await adminRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users/block')
                 .send({
-                    userId: newUserId
+                    userId: body.id
                 }));
 
-        console.log("blocked user", email)
+        console.log("blocked user", blockedResponse)
 
         // Request all endpoints in parallel using Promise.all()
         const endpoints = [
             '/user-service/api/users',
-            `/user-service/api/users/${newUserId}`,
+            `/user-service/api/users/${body.id}`,
             '/user-service/api/users/interests',
             '/training-service/api/trainings',
             '/training-service/api/trainings/1',
@@ -438,7 +445,7 @@ describe('Integration Tests ', () => {
         const requests = endpoints.map(endpoint =>
             request(apiGatewayHost)
                 .get(endpoint)
-                .set('dev-email', email)
+                .set('dev-email', body.email)
         );
 
         const responses = await Promise.all(requests);
