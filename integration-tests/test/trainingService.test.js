@@ -155,6 +155,7 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
+    console.log(response.body);
     expect(response.statusCode).to.be.equal(200);
     expect(response.body).to.have.property('title', 'Test plan');
     expect(response.body).to.have.property('type', 'Running');
