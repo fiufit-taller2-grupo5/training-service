@@ -421,6 +421,7 @@ describe('Integration Tests ', function () {
                 })
                 .timeout(10000));
 
+        console.log("create user body: ", body);
         const { body: blockedResponse } = await adminRequest(
             request(apiGatewayHost)
                 .post('/user-service/api/users/block')
@@ -428,7 +429,7 @@ describe('Integration Tests ', function () {
                     userId: body.id
                 }));
 
-
+        console.log("blocked user body: ", blockedResponse);
         // Request all endpoints in parallel using Promise.all()
         const endpoints = [
             '/user-service/api/users',
