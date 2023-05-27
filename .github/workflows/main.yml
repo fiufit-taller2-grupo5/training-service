@@ -13,7 +13,7 @@ jobs:
           token: ${{ secrets.PAT }}
           repository: fiufit-taller2-grupo5/development-setup
           event-type: run-integration-tests
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}, "repo": "${{ github.repository }}"}'
 
       - name: Checkout Code
         uses: actions/checkout@v2
