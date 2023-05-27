@@ -7,6 +7,14 @@ jobs:
   okteto-deployment:
     runs-on: ubuntu-latest
     steps:
+      - name: Integration tests on development-setup
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT }}
+          repository: fiufit-taller2-grupo5/development-setup
+          event-type: run-integration-tests
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
       - name: Checkout Code
         uses: actions/checkout@v2
 
