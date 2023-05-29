@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 const { createConnection, Exclusion } = require('typeorm');
 const { startDockerCompose, stopDockerCompose } = require('./dockerComposeManager');
 const { describe, before, after, beforeEach } = require('mocha');
-
+const datetime = require('node-datetime');
 const apiGatewayHost = 'http://localhost:3000';
 
 const authedRequest = (request) => {
@@ -519,12 +519,15 @@ describe('Integration Tests ', () => {
             "distance": 15,
             "calories": 15,
             "duration": 15,
-            "date": 15,
+            "date": datetime.create().now(),
             "steps": 15
           }
         )
     );
 
+    console.log("response body");
+    console.log(response.body);
+    console.log("response body fin");
     expect(response.statusCode).to.be.equal(200);
     expect(response.body).to.have.property('userId', testUser.id);
     expect(response.body).to.have.property('distance', 15);
@@ -544,6 +547,8 @@ describe('Integration Tests ', () => {
           trainerId: testTrainer.id
         })
     );
+
+
 
     const response = await authedRequest(
       request(apiGatewayHost)
@@ -570,7 +575,7 @@ describe('Integration Tests ', () => {
             "distance": 1,
             "calories": 1,
             "duration": 1,
-            "date": 1,
+            "date": datetime.create().now(),
             "steps": 1
           }
         )
@@ -600,7 +605,7 @@ describe('Integration Tests ', () => {
             "distance": 1,
             "calories": 1,
             "duration": 1,
-            "date": 1,
+            "date": datetime.create().now(),
             "steps": 1
           }
         )
@@ -608,6 +613,23 @@ describe('Integration Tests ', () => {
 
     expect(response4.statusCode).to.be.equal(404);
     expect(response4.body).to.have.property('message', 'Training plan not found');
+
+    const response5 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 1,
+            "calories": 1,
+            "duration": 1,
+            "date": "2024-05-27T07:00:00Z",
+            "steps": 1
+          }
+        )
+    );
+
+    expect(response5.statusCode).to.be.equal(402);
+    expect(response5.body).to.have.property('message', "Date can't be in the future");
   });
 
   it("GET user trainings of a specific training plan", async () => {
@@ -733,4 +755,7 @@ describe('Integration Tests ', () => {
     expect(response.body[0]).to.have.property('distance', 20);
     expect(response.body[1]).to.have.property('distance', 100);
   });
+
+
+
 });
