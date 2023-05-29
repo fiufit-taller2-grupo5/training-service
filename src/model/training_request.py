@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class TrainingPlanRequest(BaseModel):
@@ -20,4 +21,9 @@ class UserTrainingRequest(BaseModel):
     duration: int = None
     steps: int = None
     calories: int = None
-    date: str = None
+    date: datetime = None
+
+
+class IntervalUserTrainingRequest(BaseModel):
+    start: datetime = None
+    end: datetime = None

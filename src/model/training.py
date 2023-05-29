@@ -1,3 +1,4 @@
+import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 
@@ -79,6 +80,6 @@ class UserTraining(Base):
             "duration": self.duration,
             "steps": self.steps,
             "calories": self.calories,
-            "date": self.date,
+            "date": self.date.isoformat(),
             "trainingPlanId": self.trainingPlanId,
         }

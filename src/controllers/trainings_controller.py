@@ -2,9 +2,8 @@ from db.database import training_dal
 from model.training import TrainingPlan
 from fastapi import APIRouter, Request, Response, Depends, Header
 from fastapi.responses import JSONResponse
-from model.training_request import TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
+from model.training_request import IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
 from fastapi import HTTPException
-from sqlalchemy.orm import sessionmaker
 import requests
 from services.user_service import check_if_user_exists_by_id
 from services.metrics_service import send_system_metric
@@ -35,11 +34,12 @@ def get_unblocked_training_plan(training_plan_id: int):
 @router.get("/")
 async def get_all_trainigs(response: Response, type: str = None, difficulty: int = None, trainer_id: int = None, x_role: str = Header(None)):
     print(f"X-Role: {x_role}")
-    
-    result = training_dal.get_trainings(
-    type, difficulty, trainer_id, x_role == "user")
 
-    headers = {"Access-Control-Expose-Headers": "X-Total-Count", "X-Total-Count": str(len(result))}
+    result = training_dal.get_trainings(
+        type, difficulty, trainer_id, x_role == "user")
+
+    headers = {"Access-Control-Expose-Headers": "X-Total-Count",
+               "X-Total-Count": str(len(result))}
     result = [training.as_dict() for training in result]
 
     return JSONResponse(content=result, headers=headers)
@@ -91,7 +91,6 @@ async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unb
     return JSONResponse(status_code=200, content=result.as_dict())
 
 
-
 @router.get("/favorites/{user_id}")
 async def get_favorite_trainings(user_id):
     try:
@@ -101,31 +100,32 @@ async def get_favorite_trainings(user_id):
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
 
+
 @router.put("/{training_plan_id}")
 async def update_training(training_plan_id: int, request: TrainingPlanRequest, x_email: str = Header(None)):
     user_service_url = f"http://user-service:80/api/users/by_email/{x_email}"
     response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
+        "test": "true",
+        "dev": "true"})
     if response.status_code != 200:
         raise HTTPException(
             status_code=404, detail="Trainer not found")
 
     user = response.json()
-    print("the usre", user)
     if user["role"] == "admin":
         training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, False)
     else:
         training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, True)
-            
+
     training_plan.state = request.state
     training_dal.update_training(training_plan)
     return JSONResponse(
         status_code=200,
         content=training_plan.as_dict()
     )
+
 
 @router.put("/{training_plan_id}/block")
 async def block_training_plan(training_plan: TrainingPlan = Depends(get_unblocked_training_plan)):
@@ -252,6 +252,17 @@ async def get_user_trainings(user_id: int):
     try:
         check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_trainings(user_id)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+@router.get("/user_training/{user_id}/between_dates")
+async def get_user_trainings_between_dates(user_id: int, request: IntervalUserTrainingRequest):
+    try:
+        check_if_user_exists_by_id(user_id)
+        result = training_dal.get_user_trainings_between_dates(
+            user_id, request.start, request.end)
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
