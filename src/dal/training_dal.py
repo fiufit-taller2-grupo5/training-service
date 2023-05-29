@@ -315,8 +315,15 @@ class TrainingDal:
             return [training.as_dict() for training in user_trainings]
 
     def get_user_trainings_between_dates(self, user_id: int, start: datetime, end: datetime):
-        print(f"start: {start}, end: {end}, user_id: {user_id}")
         with self.Session() as session:
+            if not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (start or end date)")
+
+            if start > end:
+                raise HTTPException(
+                    status_code=400, detail="Start date must be before end date")
+
             user_trainings = session.query(UserTraining).filter(
                 UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end).all()
             if not user_trainings:
