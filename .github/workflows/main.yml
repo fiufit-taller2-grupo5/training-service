@@ -46,3 +46,4 @@ jobs:
           cd development-setup/integration-tests
           npm install
           ./run-tests.sh user
+          ./run-tests.sh training
