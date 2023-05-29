@@ -756,6 +756,132 @@ describe('Integration Tests ', () => {
     expect(response.body[1]).to.have.property('distance', 100);
   });
 
+  /*
 
+@router.get("/user_training/{user_id}/between_dates")
+async def get_user_trainings_between_dates(user_id: int, request: IntervalUserTrainingRequest):
+    try:
+        check_if_user_exists_by_id(user_id)
+        if request.start > request.end:
+            raise HTTPException(
+                status_code=400, detail="Start date must be before end date")
+        result = training_dal.get_user_trainings_between_dates(
+            user_id, request.start, request.end)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+   def get_user_trainings_between_dates(self, user_id: int, start: datetime, end: datetime):
+        print(f"start: {start}, end: {end}, user_id: {user_id}")
+        with self.Session() as session:
+            user_trainings = session.query(UserTraining).filter(
+                UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end).all()
+            if not user_trainings:
+                return []
+            return [training.as_dict() for training in user_trainings]
+  */
+
+
+  it("GET user trainings between dates", async () => {
+
+    const training = await authedRequest(
+      request(apiGatewayHost)
+        .post('/training-service/api/trainings')
+        .send({
+          title: 'Test plan',
+          type: 'Running',
+          description: 'Test description',
+          difficulty: 3,
+          state: 'active',
+          trainerId: testTrainer.id
+        })
+    );
+    expect(training.statusCode).to.be.equal(200);
+
+    const training_session1 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 20,
+            "calories": 15,
+            "duration": 15,
+            "date": "2022-05-27T07:00:00Z",
+            "steps": 15
+          }
+        )
+    );
+    expect(training_session1.statusCode).to.be.equal(200);
+
+    const training_session2 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 100,
+            "calories": 12,
+            "duration": 150,
+            "date": "2022-05-27T08:00:00Z",
+            "steps": 15
+          }
+        )
+    );
+    expect(training_session2.statusCode).to.be.equal(200);
+
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/${testUser.id}/between_dates`)
+        .send({
+          start: "2022-05-27T06:00:00Z",
+          end: "2022-05-27T09:00:00Z"
+        })
+    );
+
+    expect(response.statusCode).to.be.equal(200);
+    expect(response.body).to.be.an('array');
+    expect(response.body).to.have.lengthOf(2);
+    expect(response.body[0]).to.have.property('distance', 20);
+    expect(response.body[1]).to.have.property('distance', 100);
+
+  }
+  );
+
+  it("GET user trainings between dates invalid", async () => {
+    const response = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/4555/between_dates`)
+        .send({
+          start: "2022-05-27T06:00:00Z",
+          end: "2022-05-27T09:00:00Z"
+        })
+    );
+
+    expect(response.statusCode).to.be.equal(404);
+    expect(response.body).to.have.property('message', 'User not found');
+
+    const response2 = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/${testUser.id}/between_dates`)
+        .send({
+          start: "2024-05-27T06:00:00Z",
+          end: "2022-05-27T09:00:00Z"
+        })
+    );
+
+    expect(response2.statusCode).to.be.equal(400);
+    expect(response2.body).to.have.property('message', "Start date must be before end date");
+
+    const response3 = await authedRequest(
+      request(apiGatewayHost)
+        .get(`/training-service/api/trainings/user_training/${testUser.id}/between_dates`)
+        .send({
+          end: "2022-05-27T09:00:00Z"
+        })
+    );
+
+    expect(response3.statusCode).to.be.equal(401);
+    expect(response3.body).to.have.property('message', "Missing required fields (start or end date)");
+  });
 
 });
