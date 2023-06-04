@@ -85,7 +85,7 @@ model UserTraining {
   duration       Int
   steps          Int
   calories       Int
-  date           String
+  date           DateTime
   userId         Int
   trainingPlanId Int
   trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)

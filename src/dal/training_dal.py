@@ -9,7 +9,9 @@ from fastapi import HTTPException
 import requests
 from constants import BLOCKED_STATE, ACTIVE_STATE
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 from sqlalchemy import func
+
 
 class TrainingDal:
 
@@ -20,18 +22,18 @@ class TrainingDal:
     def get_training_plan_by_id(self, training_id, skip_blocked: bool = True) -> TrainingPlan:
         training_plan = None
         with self.Session() as session:
-            try: 
+            try:
                 if skip_blocked:
                     training_plan = session.query(TrainingPlan).filter(
                         TrainingPlan.id == training_id).filter(
                         TrainingPlan.state == ACTIVE_STATE).first()
                 else:
                     training_plan = session.query(TrainingPlan).filter(
-                    TrainingPlan.id == training_id).first()
+                        TrainingPlan.id == training_id).first()
             except SQLAlchemyError as e:
-               raise HTTPException(
-                status_code=404, detail="Training plan not found")  
-            
+                raise HTTPException(
+                    status_code=404, detail="Training plan not found")
+
             if not training_plan:
                 raise HTTPException(
                     status_code=404, detail="Training plan not found")
@@ -39,7 +41,7 @@ class TrainingDal:
 
     def get_trainings(self, training_type: str, difficulty: str, trainer_id: int, skip_blocked: bool = True) -> List[TrainingPlan]:
         with self.Session() as session:
-            try: 
+            try:
                 query = session.query(TrainingPlan)
                 if training_type is not None:
                     query = query.filter(TrainingPlan.type == training_type)
@@ -121,12 +123,12 @@ class TrainingDal:
     def delete_training_from_favorite(self, training_id: int, user_id: int):
         print(f"deleting training {training_id} from user {user_id}")
         with self.Session() as session:
-                user_favorite_training_plan = session.query(UserFavoriteTrainingPlan).filter(
-                    UserFavoriteTrainingPlan.userId == user_id).filter(
-                    UserFavoriteTrainingPlan.trainingPlanId == training_id).first()
-                session.delete(user_favorite_training_plan)
-                session.commit()
-                return user_favorite_training_plan
+            user_favorite_training_plan = session.query(UserFavoriteTrainingPlan).filter(
+                UserFavoriteTrainingPlan.userId == user_id).filter(
+                UserFavoriteTrainingPlan.trainingPlanId == training_id).first()
+            session.delete(user_favorite_training_plan)
+            session.commit()
+            return user_favorite_training_plan
 
     def get_favorite_trainings(self, user_id: int):
         with self.Session() as session:
@@ -155,8 +157,8 @@ class TrainingDal:
 
                 user_service_url = f"http://user-service:80/api/users/{user_id}"
                 response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
+                    "test": "true",
+                    "dev": "true"})
 
                 if response.status_code != 200:
                     raise HTTPException(
@@ -198,12 +200,16 @@ class TrainingDal:
                 return []
             return [review.as_dict() for review in reviews]
 
-    def add_user_training(self, user_id: int, training_plan_id: int, distance: float, duration: float, steps: int, calories: int, date: str):
+    def add_user_training(self, user_id: int, training_plan_id: int, distance: float, duration: float, steps: int, calories: int, date: datetime):
         with self.Session() as session:
             try:
                 if not distance or not duration or not steps or not calories or not date:
                     raise HTTPException(
                         status_code=400, detail="Missing required fields (distance, duration, steps, calories or date)")
+                date_received = date.replace(tzinfo=None)
+                if date_received > datetime.now().replace(tzinfo=None):
+                    raise HTTPException(
+                        status_code=402, detail="Date can't be in the future")
 
                 if distance < 0 or duration < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
@@ -228,8 +234,8 @@ class TrainingDal:
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
             response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
+                "test": "true",
+                "dev": "true"})
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=404, detail="User not found")
@@ -262,8 +268,8 @@ class TrainingDal:
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
             response = requests.get(user_service_url, headers={
-                                "test": "true",
-                                "dev": "true"})
+                "test": "true",
+                "dev": "true"})
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=404, detail="User not found")
@@ -304,6 +310,22 @@ class TrainingDal:
         with self.Session() as session:
             user_trainings = session.query(UserTraining).filter(
                 UserTraining.userId == user_id).all()
+            if not user_trainings:
+                return []
+            return [training.as_dict() for training in user_trainings]
+
+    def get_user_trainings_between_dates(self, user_id: int, start: datetime, end: datetime):
+        with self.Session() as session:
+            if not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (start or end date)")
+
+            if start > end:
+                raise HTTPException(
+                    status_code=400, detail="Start date must be before end date")
+
+            user_trainings = session.query(UserTraining).filter(
+                UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end).all()
             if not user_trainings:
                 return []
             return [training.as_dict() for training in user_trainings]
