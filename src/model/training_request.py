@@ -18,7 +18,7 @@ class PlanReviewRequest(BaseModel):
 
 class UserTrainingRequest(BaseModel):
     distance: float = None
-    duration: int = None
+    duration: str = None
     steps: int = None
     calories: int = None
     date: datetime = None

@@ -82,7 +82,7 @@ model PlanReview {
 model UserTraining {
   id             Int          @id @default(autoincrement())
   distance       Float
-  duration       Int
+  duration       String
   steps          Int
   calories       Int
   date           DateTime

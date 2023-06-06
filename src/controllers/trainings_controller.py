@@ -266,3 +266,14 @@ async def get_user_trainings_between_dates(user_id: int, request: IntervalUserTr
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+@router.get("/user_training/{user_id}/between_dates/total")
+async def get_user_training_total_between_dates(user_id: int, request: IntervalUserTrainingRequest):
+    try:
+        check_if_user_exists_by_id(user_id)
+        result = training_dal.get_user_training_total_between_dates(
+            user_id, request.start, request.end)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})

@@ -66,7 +66,7 @@ class UserTraining(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     userId = Column(Integer, nullable=True)
     distance = Column(Integer, nullable=True)
-    duration = Column(Integer, nullable=True)
+    duration = Column(String, nullable=True)
     steps = Column(Integer, nullable=True)
     calories = Column(Integer, nullable=True)
     date = Column(String, nullable=True)

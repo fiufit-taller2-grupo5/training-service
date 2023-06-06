@@ -9,7 +9,7 @@ from fastapi import HTTPException
 import requests
 from constants import BLOCKED_STATE, ACTIVE_STATE
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import func
 
 
@@ -211,9 +211,18 @@ class TrainingDal:
                     raise HTTPException(
                         status_code=402, detail="Date can't be in the future")
 
-                if distance < 0 or duration < 0 or steps < 0 or calories < 0:
+                if distance < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
-                        status_code=400, detail="Distance, duration, steps and calories must be positive")
+                        status_code=401, detail="Distance, duration, steps and calories must be positive")
+
+                duration_split = duration.split(":")
+                if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2 or len(duration_split) != 3:
+                    raise HTTPException(
+                        status_code=403, detail="Duration must be in format HH:MM:SS")
+
+                if int(duration_split[0]) < 0 or int(duration_split[1]) < 0 or int(duration_split[2]) < 0:
+                    raise HTTPException(
+                        status_code=405, detail="Duration must be positive")
 
                 user_training = UserTraining(userId=user_id, trainingPlanId=training_plan_id,
                                              distance=distance, duration=duration, steps=steps, calories=calories, date=date)
@@ -230,6 +239,29 @@ class TrainingDal:
                 raise HTTPException(
                     status_code=500, detail=f"Something went wrong: {e}")
 
+    def calculate_duration(self, session, user_id, start=None, end=None, avg=False):
+        if start and end:
+            # get the specific duration string between two dates
+            duration_query = session.query(
+                UserTraining.duration).filter(UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end)
+
+        else:
+            # get all durations
+            duration_query = session.query(
+                UserTraining.duration).filter(UserTraining.userId == user_id)
+
+        durations = 0
+        for duration in duration_query.all():
+            # split and add
+            duration_split = duration[0].split(":")
+            durations += int(duration_split[0]) * 3600 + \
+                int(duration_split[1]) * 60 + int(duration_split[2])
+
+        if avg:
+            return str(timedelta(seconds=durations / duration_query.count()))
+        else:
+            return str(timedelta(seconds=durations))
+
     def get_user_training_average(self, user_id: int):
         with self.Session() as session:
             user_service_url = f"http://user-service:80/api/users/{user_id}"
@@ -242,7 +274,6 @@ class TrainingDal:
 
             user_training_query = session.query(
                 func.avg(UserTraining.distance),
-                func.avg(UserTraining.duration),
                 func.avg(UserTraining.steps),
                 func.avg(UserTraining.calories)
             ).filter(UserTraining.userId == user_id)
@@ -252,16 +283,19 @@ class TrainingDal:
             if not user_training_averages[0]:
                 return {
                     "distance": 0,
-                    "duration": 0,
+                    "duration": "00:00:00",
                     "steps": 0,
                     "calories": 0
                 }
 
+            avg_duration = self.calculate_duration(
+                session, user_id, None, None, True)
+
             return {
-                "distance": float(user_training_averages[0]),
-                "duration": float(user_training_averages[1]),
-                "steps": float(user_training_averages[2]),
-                "calories": float(user_training_averages[3])
+                "distance": float(user_training_averages[0] or 0),
+                "duration": avg_duration,
+                "steps": float(user_training_averages[1] or 0),
+                "calories": float(user_training_averages[2] or 0)
             }
 
     def get_user_training_total(self, user_id: int):
@@ -276,7 +310,6 @@ class TrainingDal:
 
             user_training_query = session.query(
                 func.sum(UserTraining.distance),
-                func.sum(UserTraining.duration),
                 func.sum(UserTraining.steps),
                 func.sum(UserTraining.calories)
             ).filter(UserTraining.userId == user_id)
@@ -286,16 +319,19 @@ class TrainingDal:
             if not user_training_totals[0]:
                 return {
                     "distance": 0,
-                    "duration": 0,
+                    "duration": "00:00:00",
                     "steps": 0,
                     "calories": 0
                 }
 
+            total_duration = self.calculate_duration(
+                session, user_id, None, None, False)
+
             return {
-                "distance": float(user_training_totals[0]),
-                "duration": float(user_training_totals[1]),
-                "steps": float(user_training_totals[2]),
-                "calories": float(user_training_totals[3])
+                "distance": float(user_training_totals[0] or 0),
+                "duration": total_duration,
+                "steps": float(user_training_totals[1] or 0),
+                "calories": float(user_training_totals[2] or 0)
             }
 
     def get_user_trainings_of_training_plan(self, user_id: int, training_plan_id):
@@ -312,6 +348,7 @@ class TrainingDal:
                 UserTraining.userId == user_id).all()
             if not user_trainings:
                 return []
+
             return [training.as_dict() for training in user_trainings]
 
     def get_user_trainings_between_dates(self, user_id: int, start: datetime, end: datetime):
@@ -329,3 +366,39 @@ class TrainingDal:
             if not user_trainings:
                 return []
             return [training.as_dict() for training in user_trainings]
+
+    def get_user_training_total_between_dates(self, user_id: int, start: datetime, end: datetime):
+        with self.Session() as session:
+            if not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (start or end date)")
+
+            if start > end:
+                raise HTTPException(
+                    status_code=400, detail="Start date must be before end date")
+
+            user_training_query = session.query(
+                func.sum(UserTraining.distance),
+                func.sum(UserTraining.steps),
+                func.sum(UserTraining.calories)
+            ).filter(UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end)
+
+            user_training_totals = user_training_query.first()
+
+            if not user_training_totals[0]:
+                return {
+                    "distance": 0,
+                    "duration": "00:00:00",
+                    "steps": 0,
+                    "calories": 0
+                }
+
+            total_duration = self.calculate_duration(
+                session, user_id, start, end, False)
+
+            return {
+                "distance": float(user_training_totals[0] or 0),
+                "duration": total_duration,
+                "steps": float(user_training_totals[1] or 0),
+                "calories": float(user_training_totals[2] or 0)
+            }
