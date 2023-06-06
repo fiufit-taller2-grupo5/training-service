@@ -518,7 +518,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 15,
             "calories": 15,
-            "duration": 15,
+            "duration": "01:00:00",
             "date": datetime.create().now(),
             "steps": 15
           }
@@ -557,14 +557,14 @@ describe('Integration Tests ', () => {
           {
             "distance": -8,
             "calories": -8,
-            "duration": -8,
+            "duration": "10:00:00",
             "date": -8,
             "steps": -8
           }
         )
     );
 
-    expect(response.statusCode).to.be.equal(400);
+    expect(response.statusCode).to.be.equal(401);
     expect(response.body).to.have.property('message', 'Distance, duration, steps and calories must be positive');
 
     const response2 = await authedRequest(
@@ -574,7 +574,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 1,
             "calories": 1,
-            "duration": 1,
+            "duration": "10:00:00",
             "date": datetime.create().now(),
             "steps": 1
           }
@@ -604,7 +604,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 1,
             "calories": 1,
-            "duration": 1,
+            "duration": "10:00:00",
             "date": datetime.create().now(),
             "steps": 1
           }
@@ -621,7 +621,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 1,
             "calories": 1,
-            "duration": 1,
+            "duration": "10:00:00",
             "date": "2024-05-27T07:00:00Z",
             "steps": 1
           }
@@ -630,6 +630,25 @@ describe('Integration Tests ', () => {
 
     expect(response5.statusCode).to.be.equal(402);
     expect(response5.body).to.have.property('message', "Date can't be in the future");
+
+    const response6 = await authedRequest(
+      request(apiGatewayHost)
+        .post(`/training-service/api/trainings/${training.body.id}/user_training/${testUser.id}`)
+        .send(
+          {
+            "distance": 1,
+            "calories": 1,
+            "duration": 1,
+            "date": "2022-05-27T07:00:00Z",
+            "steps": 1
+          }
+        )
+    );
+
+    expect(response6.statusCode).to.be.equal(403);
+    expect(response6.body).to.have.property('message', "Duration must be in format HH:MM:SS");
+
+
   });
 
   it("GET user trainings of a specific training plan", async () => {
@@ -654,7 +673,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 20,
             "calories": 15,
-            "duration": 15,
+            "duration": "10:00:00",
             "date": 15,
             "steps": 15
           }
@@ -668,7 +687,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 10,
             "calories": 15,
-            "duration": 15,
+            "duration": "10:00:00",
             "date": 15,
             "steps": 15
           }
@@ -723,7 +742,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 20,
             "calories": 15,
-            "duration": 15,
+            "duration": "10:00:00",
             "date": 15,
             "steps": 15
           }
@@ -737,7 +756,7 @@ describe('Integration Tests ', () => {
           {
             "distance": 100,
             "calories": 12,
-            "duration": 150,
+            "duration": "11:00:00",
             "date": 15,
             "steps": 15
           }
@@ -806,7 +825,7 @@ async def get_user_trainings_between_dates(user_id: int, request: IntervalUserTr
           {
             "distance": 20,
             "calories": 15,
-            "duration": 15,
+            "duration": "10:00:00",
             "date": "2022-05-27T07:00:00Z",
             "steps": 15
           }
@@ -821,7 +840,7 @@ async def get_user_trainings_between_dates(user_id: int, request: IntervalUserTr
           {
             "distance": 100,
             "calories": 12,
-            "duration": 150,
+            "duration": "01:00:00",
             "date": "2022-05-27T08:00:00Z",
             "steps": 15
           }
