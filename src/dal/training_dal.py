@@ -219,7 +219,7 @@ class TrainingDal:
                 if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2 or len(duration_split) != 3:
                     raise HTTPException(
                         status_code=403, detail="Duration must be in format HH:MM:SS")
-
+# comment
                 if int(duration_split[0]) < 0 or int(duration_split[1]) < 0 or int(duration_split[2]) < 0:
                     raise HTTPException(
                         status_code=405, detail="Duration must be positive")
