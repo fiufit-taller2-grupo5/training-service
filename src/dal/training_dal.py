@@ -10,7 +10,7 @@ import requests
 from constants import BLOCKED_STATE, ACTIVE_STATE
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 
 class TrainingDal:
@@ -57,16 +57,54 @@ class TrainingDal:
                 return []
 
     def add_training(self, training: TrainingPlan):
-        try:
-            with self.Session() as session:
+        with self.Session() as session:
+            try:
+                if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None:
+                    raise HTTPException(
+                        status_code=403, detail="Missing required fields (trainerId, title, type, difficulty, location, start, end or days)")
+
+                # check if start and end are valid (they are in format HH:MM), also check thaat start is befor end
+                start_split = training.start.split(":")
+                end_split = training.end.split(":")
+                if len(start_split[0]) != 2 or len(start_split[1]) != 2 or len(end_split[0]) != 2 or len(end_split[1]) != 2 or len(start_split) != 2 or len(end_split) != 2:
+                    raise HTTPException(
+                        status_code=400, detail="Start and end must be in format HH:MM")
+                if int(start_split[0]) > 23 or int(start_split[1]) > 59 or int(end_split[0]) > 23 or int(end_split[1]) > 59:
+                    raise HTTPException(
+                        status_code=401, detail="Start and end must be in format HH:MM")
+                if int(start_split[0]) > int(end_split[0]) or (int(start_split[0]) == int(end_split[0]) and int(start_split[1]) > int(end_split[1])):
+                    raise HTTPException(
+                        status_code=402, detail="Start must be before end")
+                if training.days is not None:
+                    days = training.days.split(",")
+                    for day in days:
+                        if day.lower().strip() not in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+                            raise HTTPException(
+                                status_code=400, detail="Invalid day")
+                    if len(days) != len(set(days)):
+                        raise HTTPException(
+                            status_code=400, detail="Days must not repeat")
+
+                training = TrainingPlan(
+                    title=training.title,
+                    description=training.description,
+                    state=training.state,
+                    difficulty=training.difficulty,
+                    type=training.type,
+                    trainerId=training.trainerId,
+                    location=training.location,
+                    start=training.start,
+                    end=training.end,
+                    days=training.days
+                )
                 session.add(training)
                 session.commit()
                 session.refresh(training)
                 return training
-        except IntegrityError as e:
-            session.rollback()
-            raise HTTPException(
-                status_code=500, detail=e.args[0])
+            except IntegrityError as e:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail=e.args[0])
 
     def update_training(self, training: TrainingPlan):
         with self.Session() as session:
@@ -84,6 +122,88 @@ class TrainingDal:
             updated_training = session.query(TrainingPlan).filter(
                 TrainingPlan.id == training.id).first()
             return updated_training
+
+    def get_training_by_hours(self, start: str, end: str):
+        with self.Session() as session:
+            if not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (start or end date)")
+            start_split = start.split(":")
+            end_split = end.split(":")
+            if len(start_split[0]) != 2 or len(start_split[1]) != 2 or len(end_split[0]) != 2 or len(end_split[1]) != 2 or len(start_split) != 2 or len(end_split) != 2:
+                raise HTTPException(
+                    status_code=400, detail="Start and end must be in format HH:MM")
+            if int(start_split[0]) > 23 or int(start_split[1]) > 59 or int(end_split[0]) > 23 or int(end_split[1]) > 59:
+                raise HTTPException(
+                    status_code=401, detail="Start and end must be in format HH:MM")
+            if int(start_split[0]) > int(end_split[0]) or (int(start_split[0]) == int(end_split[0]) and int(start_split[1]) > int(end_split[1])):
+                raise HTTPException(
+                    status_code=402, detail="Start must be before end")
+
+            trainings = session.query(TrainingPlan).filter(
+                TrainingPlan.start >= start).filter(
+                TrainingPlan.end <= end).all()
+            if not trainings:
+                return []
+            return [training.as_dict() for training in trainings]
+
+    def get_training_by_days(self, days: str):
+        with self.Session() as session:
+            if not days:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (days)")
+            days = days.split(",")
+            # make all days be in lowercase
+
+            for day in days:
+                if day.lower().strip() not in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+                    raise HTTPException(
+                        status_code=400, detail="Invalid day")
+            if len(days) != len(set(days)):
+                raise HTTPException(
+                    status_code=400, detail="Days must not repeat")
+
+            trainings = session.query(TrainingPlan).filter(
+                or_(*
+                    [TrainingPlan.days.ilike(f"%{day.lower().strip()}%") for day in days])
+            ).all()
+
+            if not trainings:
+                return []
+            return [training.as_dict() for training in trainings]
+
+    def get_training_by_days_and_hours(self, days: str, start: str, end: str):
+        with self.Session() as session:
+            if not days or not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (days, start or end date)")
+            days = days.split(",")
+            for day in days:
+                if day.lower().strip() not in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+                    raise HTTPException(
+                        status_code=400, detail="Invalid day")
+            if len(days) != len(set(days)):
+                raise HTTPException(
+                    status_code=400, detail="Days must not repeat")
+            start_split = start.split(":")
+            end_split = end.split(":")
+            if len(start_split[0]) != 2 or len(start_split[1]) != 2 or len(end_split[0]) != 2 or len(end_split[1]) != 2 or len(start_split) != 2 or len(end_split) != 2:
+                raise HTTPException(
+                    status_code=400, detail="Start and end must be in format HH:MM")
+            if int(start_split[0]) > 23 or int(start_split[1]) > 59 or int(end_split[0]) > 23 or int(end_split[1]) > 59:
+                raise HTTPException(
+                    status_code=401, detail="Start and end must be in format HH:MM")
+            if int(start_split[0]) > int(end_split[0]) or (int(start_split[0]) == int(end_split[0]) and int(start_split[1]) > int(end_split[1])):
+                raise HTTPException(
+                    status_code=402, detail="Start must be before end")
+
+            trainings = session.query(TrainingPlan).filter(
+                TrainingPlan.days.in_(days)).filter(
+                TrainingPlan.start >= start).filter(
+                TrainingPlan.end <= end).all()
+            if not trainings:
+                return []
+            return [training.as_dict() for training in trainings]
 
     def add_training_to_favorite(self, training_id: int, user_id: int):
         with self.Session() as session:

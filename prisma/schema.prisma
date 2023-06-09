@@ -44,6 +44,10 @@ model TrainingPlan {
   type                     TrainingType
   UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
   UserTraining             UserTraining[]
+  location                 String
+  days                     String
+  start                    String
+  end                      String
 
   @@schema("training-service")
 }

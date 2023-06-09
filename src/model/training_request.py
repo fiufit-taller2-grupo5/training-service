@@ -9,6 +9,10 @@ class TrainingPlanRequest(BaseModel):
     difficulty: int = None
     type: str = None
     trainerId: int = None
+    location: str = None
+    start: str = None
+    end: str = None
+    days: str = None
 
 
 class PlanReviewRequest(BaseModel):
@@ -27,3 +31,9 @@ class UserTrainingRequest(BaseModel):
 class IntervalUserTrainingRequest(BaseModel):
     start: datetime = None
     end: datetime = None
+
+
+class IntervalTrainingPlanRequest(BaseModel):
+    start: str = None
+    end: str = None
+    days: str = None

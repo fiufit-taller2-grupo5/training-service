@@ -15,6 +15,10 @@ class TrainingPlan(Base):
     difficulty = Column(Integer, nullable=True)
     type = Column(String, default="default")
     trainerId = Column(Integer, nullable=True)
+    location = Column(String, nullable=True)
+    start = Column(Integer, nullable=True)
+    end = Column(Integer, nullable=True)
+    days = Column(String, nullable=True)
 
     def as_dict(self):
         return {
@@ -25,6 +29,10 @@ class TrainingPlan(Base):
             "type": self.type,
             "trainerId": self.trainerId,
             "description": self.description,
+            "location": self.location,
+            "start": self.start,
+            "end": self.end,
+            "days": self.days,
         }
 
 

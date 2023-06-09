@@ -2,7 +2,7 @@ from db.database import training_dal
 from model.training import TrainingPlan
 from fastapi import APIRouter, Request, Response, Depends, Header
 from fastapi.responses import JSONResponse
-from model.training_request import IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
+from model.training_request import IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
 from fastapi import HTTPException
 import requests
 from services.user_service import check_if_user_exists_by_id
@@ -43,6 +43,36 @@ async def get_all_trainigs(response: Response, type: str = None, difficulty: int
     result = [training.as_dict() for training in result]
 
     return JSONResponse(content=result, headers=headers)
+
+
+@router.get("/between_dates_hours")
+async def get_trainings_between_dates_and_hours(request: IntervalTrainingPlanRequest):
+    try:
+        result = training_dal.get_training_by_days_and_hours(
+            request.days, request.start, request.end)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+@router.get("/between_hours")
+async def get_trainings_between_hours(request: IntervalTrainingPlanRequest):
+    try:
+        result = training_dal.get_training_by_hours(
+            request.start, request.end)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+@router.get("/between_dates")
+async def get_trainings_between_dates(request: IntervalTrainingPlanRequest):
+    try:
+        result = training_dal.get_training_by_days(
+            request.days)
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
 
 
 @router.get("/{training_plan_id}")
@@ -164,6 +194,10 @@ async def add_training(training_request: TrainingPlanRequest):
         difficulty=training_request.difficulty,
         type=training_request.type,
         trainerId=training_request.trainerId,
+        location=training_request.location,
+        start=training_request.start,
+        end=training_request.end,
+        days=training_request.days
     )
     try:
         result = training_dal.add_training(training)
@@ -172,13 +206,12 @@ async def add_training(training_request: TrainingPlanRequest):
             status_code=200,
             content=result.as_dict()
         )
-    except Exception as e:
+    except HTTPException as e:
         return JSONResponse(
-            status_code=400,
+            status_code=e.status_code,
             content={
                 "status": "error",
-                "message": "Could not add training, maybe there's a missing property",
-                "fullMessage": f"{e}"
+                "detail": f"{e.detail}"
             }
         )
 
