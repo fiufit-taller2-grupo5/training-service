@@ -106,22 +106,30 @@ class TrainingDal:
                 raise HTTPException(
                     status_code=500, detail=e.args[0])
 
-    def update_training(self, training: TrainingPlan):
+    def update_training(self, newtraining: TrainingPlan):
         with self.Session() as session:
-            # Convert the TrainingPlan object to a dictionary
-            training_dict = training.__dict__
-            # SQLAlchemy adds a '_sa_instance_state' key in the __dict__ method, you need to remove it
-            training_dict.pop('_sa_instance_state', None)
+            try:
+                session.query(TrainingPlan).filter(TrainingPlan.id == newtraining.id).update({
+                    TrainingPlan.title: newtraining.title,
+                    TrainingPlan.description: newtraining.description,
+                    TrainingPlan.state: newtraining.state,
+                    TrainingPlan.difficulty: newtraining.difficulty,
+                    TrainingPlan.type: newtraining.type,
+                    TrainingPlan.trainerId: newtraining.trainerId,
+                    TrainingPlan.location: newtraining.location,
+                    TrainingPlan.start: newtraining.start,
+                    TrainingPlan.end: newtraining.end,
+                    TrainingPlan.days: newtraining.days
+                })
+                session.commit()
+                updated_training = session.query(TrainingPlan).filter(
+                    TrainingPlan.id == newtraining.id).first()
+                return updated_training
 
-            # Update the record
-            session.query(TrainingPlan).filter(
-                TrainingPlan.id == training.id).update(training_dict)
-            session.commit()
-
-            # Fetch the updated TrainingPlan
-            updated_training = session.query(TrainingPlan).filter(
-                TrainingPlan.id == training.id).first()
-            return updated_training
+            except IntegrityError as e:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail=e.args[0])
 
     def get_training_by_hours(self, start: str, end: str):
         with self.Session() as session:

@@ -149,11 +149,29 @@ async def update_training(training_plan_id: int, request: TrainingPlanRequest, x
         training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, True)
 
-    training_plan.state = request.state
-    training_dal.update_training(training_plan)
+    if not training_plan:
+        raise HTTPException(
+            status_code=404, detail="Training plan not found")
+
+    new_training_plan = TrainingPlan(
+        id=training_plan_id,
+        title=request.title,
+        description=request.description,
+        state=request.state,
+        difficulty=request.difficulty,
+        type=request.type,
+        trainerId=request.trainerId,
+        location=request.location,
+        start=request.start,
+        end=request.end,
+        days=request.days
+    )
+
+    # training_plan.state = request.state
+    updated = training_dal.update_training(new_training_plan)
     return JSONResponse(
         status_code=200,
-        content=training_plan.as_dict()
+        content=updated.as_dict()
     )
 
 
