@@ -323,7 +323,7 @@ class TrainingDal:
     def add_user_training(self, user_id: int, training_plan_id: int, distance: float, duration: float, steps: int, calories: int, date: datetime):
         with self.Session() as session:
             try:
-                if not distance or not duration or not steps or not calories or not date:
+                if distance is None or duration is None or steps is None or calories is None or date is None:
                     raise HTTPException(
                         status_code=400, detail="Missing required fields (distance, duration, steps, calories or date)")
                 date_received = date.replace(tzinfo=None)
