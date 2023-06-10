@@ -26,6 +26,7 @@ class UserTrainingRequest(BaseModel):
     steps: int = None
     calories: int = None
     date: datetime = None
+    trainingPlanId: int = None
 
 
 class IntervalUserTrainingRequest(BaseModel):
