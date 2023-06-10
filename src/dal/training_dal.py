@@ -61,7 +61,7 @@ class TrainingDal:
             try:
                 if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None:
                     raise HTTPException(
-                        status_code=403, detail="Missing required fields (trainerId, title, type, difficulty, location, start, end or days)")
+                        status_code=400, detail="Missing required fields (trainerId, title, type, difficulty, location, start, end or days)")
 
                 # check if start and end are valid (they are in format HH:MM), also check thaat start is befor end
                 start_split = training.start.split(":")
@@ -329,20 +329,20 @@ class TrainingDal:
                 date_received = date.replace(tzinfo=None)
                 if date_received > datetime.now().replace(tzinfo=None):
                     raise HTTPException(
-                        status_code=402, detail="Date can't be in the future")
+                        status_code=400, detail="Date can't be in the future")
 
                 if distance < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
-                        status_code=401, detail="Distance, duration, steps and calories must be positive")
+                        status_code=400, detail="Distance, duration, steps and calories must be positive")
 
                 duration_split = duration.split(":")
                 if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2 or len(duration_split) != 3:
                     raise HTTPException(
-                        status_code=403, detail="Duration must be in format HH:MM:SS")
+                        status_code=400, detail="Duration must be in format HH:MM:SS")
 
                 if int(duration_split[0]) < 0 or int(duration_split[1]) < 0 or int(duration_split[2]) < 0:
                     raise HTTPException(
-                        status_code=405, detail="Duration must be positive")
+                        status_code=400, detail="Duration must be positive")
 
                 user_training = UserTraining(userId=user_id, trainingPlanId=training_plan_id,
                                              distance=distance, duration=duration, steps=steps, calories=calories, date=date)
