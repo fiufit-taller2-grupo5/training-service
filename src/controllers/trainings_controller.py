@@ -94,6 +94,7 @@ async def get_training_plan_by_id(training_plan_id: int, x_role: str = Header(No
 async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
     try:
         check_if_user_exists_by_id(user_id)
+        
         result = training_dal.add_training_to_favorite(
             training_plan.id, user_id)
     except:
