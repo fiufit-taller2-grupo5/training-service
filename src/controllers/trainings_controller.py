@@ -163,6 +163,8 @@ async def update_training(training_plan_id: int, request: TrainingPlanRequest, x
         type=request.type,
         trainerId=request.trainerId,
         location=request.location,
+        latitude=request.latitude,
+        longitude=request.longitude,
         start=request.start,
         end=request.end,
         days=request.days
@@ -214,6 +216,8 @@ async def add_training(training_request: TrainingPlanRequest):
         type=training_request.type,
         trainerId=training_request.trainerId,
         location=training_request.location,
+        latitude=training_request.latitude,
+        longitude=training_request.longitude,
         start=training_request.start,
         end=training_request.end,
         days=training_request.days

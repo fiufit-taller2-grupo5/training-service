@@ -45,6 +45,8 @@ model TrainingPlan {
   UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
   UserTraining             UserTraining[]
   location                 String
+  latitude                 String
+  longitude                String
   days                     String
   start                    String
   end                      String

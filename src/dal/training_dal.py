@@ -94,6 +94,8 @@ class TrainingDal:
             type=training.type,
             trainerId=training.trainerId,
             location=training.location,
+            latitude=training.latitude,
+            longitude=training.longitude,
             start=training.start,
             end=training.end,
             days=training.days
@@ -102,9 +104,9 @@ class TrainingDal:
     def add_training(self, training: TrainingPlan):
         with self.Session() as session:
             try:
-                if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None:
+                if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None or training.latitude is None or training.longitude is None:
                     raise HTTPException(
-                        status_code=400, detail="Missing required fields (trainerId, title, type, difficulty, location, start, end or days)")
+                        status_code=400, detail="Missing required fields (trainerId, title, type, difficulty, location, start, longitude, latitude, end or days)")
 
                 self.valid_schedule(training.start, training.end)
 
@@ -138,6 +140,8 @@ class TrainingDal:
                     TrainingPlan.type: newtraining.type,
                     TrainingPlan.trainerId: newtraining.trainerId,
                     TrainingPlan.location: newtraining.location,
+                    TrainingPlan.latitude: newtraining.latitude,
+                    TrainingPlan.longitude: newtraining.longitude,
                     TrainingPlan.start: newtraining.start,
                     TrainingPlan.end: newtraining.end,
                     TrainingPlan.days: newtraining.days

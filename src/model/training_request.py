@@ -10,6 +10,8 @@ class TrainingPlanRequest(BaseModel):
     type: str = None
     trainerId: int = None
     location: str = None
+    latitude: str = None
+    longitude: str = None
     start: str = None
     end: str = None
     days: str = None

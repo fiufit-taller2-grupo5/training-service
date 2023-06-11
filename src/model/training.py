@@ -16,6 +16,8 @@ class TrainingPlan(Base):
     type = Column(String, default="default")
     trainerId = Column(Integer, nullable=True)
     location = Column(String, nullable=True)
+    latitude = Column(String, nullable=True)
+    longitude = Column(String, nullable=True)
     start = Column(Integer, nullable=True)
     end = Column(Integer, nullable=True)
     days = Column(String, nullable=True)
@@ -30,6 +32,8 @@ class TrainingPlan(Base):
             "trainerId": self.trainerId,
             "description": self.description,
             "location": self.location,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
             "start": self.start,
             "end": self.end,
             "days": self.days,
