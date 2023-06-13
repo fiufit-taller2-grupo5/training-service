@@ -40,6 +40,24 @@ class TrainingPlan(Base):
         }
 
 
+
+class Multimedia(Base):
+    __tablename__ = "Multimedia"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    fileUrl = Column(String, nullable=True)
+    type = Column(String, nullable=True)
+    trainingPlanId = Column(Integer, nullable=True)
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "fileUrl": self.fileUrl,
+            "type": self.type,
+            "trainingPlanId": self.trainingPlanId,
+        }
+    
+
 class UserFavoriteTrainingPlan(Base):
     __tablename__ = "UserFavoriteTrainingPlan"
 

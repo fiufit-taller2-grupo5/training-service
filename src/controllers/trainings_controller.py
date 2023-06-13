@@ -1,14 +1,17 @@
-from db.database import training_dal
-from model.training import TrainingPlan
-from fastapi import APIRouter, Request, Response, Depends, Header
-from fastapi.responses import JSONResponse
-from model.training_request import IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
-from fastapi import HTTPException
-import requests
-from services.user_service import check_if_user_exists_by_id
-from services.metrics_service import send_system_metric
 
 from constants import BLOCKED_STATE, ACTIVE_STATE
+from services.metrics_service import send_system_metric
+from services.user_service import check_if_user_exists_by_id
+import requests
+from fastapi import HTTPException
+from model.training_request import IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
+from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Request, Response, Depends, Header
+from model.training import TrainingPlan
+from db.database import training_dal
+from firebase.firebaseUtils import make_dir, upload_file
+from fastapi import UploadFile, File
+from fastapi.param_functions import File
 router = APIRouter()
 
 
@@ -94,7 +97,7 @@ async def get_training_plan_by_id(training_plan_id: int, x_role: str = Header(No
 async def add_training_to_favorite(training_plan: TrainingPlan = Depends(get_unblocked_training_plan), user_id: int = None):
     try:
         check_if_user_exists_by_id(user_id)
-        
+
         result = training_dal.add_training_to_favorite(
             training_plan.id, user_id)
     except:
@@ -238,6 +241,26 @@ async def add_training(training_request: TrainingPlanRequest):
             }
         )
 
+
+@router.put("/{training_plan_id}/image")
+async def add_training_image(training_plan_id: int, file: UploadFile = File(...)):
+    try:
+        make_dir(f"training_{training_plan_id}")
+        file_name = f"{file.filename}"
+        url = upload_file(file.file, f"training_{training_plan_id}_{file_name}")
+        result = training_dal.add_training_image(training_plan_id, url)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content="Image uploaded successfully download in: " + url)
+
+
+@router.get("/{training_plan_id}/image")
+async def get_training_image(training_plan_id: int):
+    try:
+        result = training_dal.get_training_images(training_plan_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result)
 
 @router.post("/{training_plan_id}/review/{user_id}")
 async def add_training_review(training_plan_id: int, user_id: int, request: PlanReviewRequest):

@@ -2,7 +2,7 @@ from ast import FunctionDef
 from decimal import Decimal
 from sqlite3 import IntegrityError
 from sqlalchemy.orm import sessionmaker
-from model.training import TrainingPlan
+from model.training import Multimedia, TrainingPlan
 from typing import List
 from model.training import UserFavoriteTrainingPlan, PlanReview, UserTraining
 from fastapi import HTTPException
@@ -322,6 +322,50 @@ class TrainingDal:
                 session.rollback()
                 raise HTTPException(
                     status_code=500, detail="Something went wrong")
+
+# model Multimedia {
+#   id             Int          @id @default(autoincrement())
+#   fileUrl        String
+#   type           String
+#   trainingPlanId Int
+#   trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+#   @@schema("training-service")
+# }
+
+
+    def add_training_image(self, training_plan_id: int, url: str):
+        with self.Session() as session:
+            try:
+                if session.query(TrainingPlan).filter(TrainingPlan.id == training_plan_id).count() == 0:
+                    raise HTTPException(
+                        status_code=404, detail="Training plan not found")
+
+                multimedia = Multimedia(
+                    fileUrl=url, type="image/jpeg", trainingPlanId=training_plan_id)
+                session.add(multimedia)
+                session.commit()
+                session.refresh(multimedia)
+                return multimedia
+            except HTTPException as e:
+                session.rollback()
+                raise HTTPException(
+                    status_code=e.status_code, detail=e.detail)
+            except:
+                session.rollback()
+                raise HTTPException(
+                    status_code=500, detail="Something went wrong")
+            
+    def get_training_images(self, training_plan_id: int):
+        with self.Session() as session:
+            if session.query(TrainingPlan).filter(TrainingPlan.id == training_plan_id).count() == 0:
+                raise HTTPException(
+                    status_code=404, detail="Training plan not found")
+            images = session.query(Multimedia).filter(
+                Multimedia.trainingPlanId == training_plan_id).all()
+            if not images:
+                return []
+            return [image.as_dict() for image in images]
 
     def get_training_reviews(self, training_plan_id: int):
         with self.Session() as session:

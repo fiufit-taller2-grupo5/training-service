@@ -3,3 +3,5 @@ fastapi
 sqlalchemy
 psycopg2
 requests
+firebase_admin
+python-multipart
