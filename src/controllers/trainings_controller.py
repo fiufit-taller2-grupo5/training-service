@@ -45,6 +45,12 @@ async def get_all_trainigs(response: Response, type: str = None, difficulty: int
                "X-Total-Count": str(len(result))}
     result = [training.as_dict() for training in result]
 
+    # add the multimedia to all trainings
+    for training in result:
+        training["multimedia"] = training_dal.get_training_images(
+            training["id"])
+        
+
     return JSONResponse(content=result, headers=headers)
 
 
@@ -53,6 +59,7 @@ async def get_trainings_between_dates_and_hours(request: IntervalTrainingPlanReq
     try:
         result = training_dal.get_training_by_days_and_hours(
             request.days, request.start, request.end)
+        
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
