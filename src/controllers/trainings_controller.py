@@ -355,3 +355,19 @@ async def get_user_training_total_between_dates(user_id: int, request: IntervalU
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+
+
+@router.get("/user_training/{user_id}/between_dates/group_by/{group_by}")
+async def get_user_training_total_between_dates(user_id: int, group_by: str, request: IntervalUserTrainingRequest):
+    try:
+        check_if_user_exists_by_id(user_id)
+        if group_by == "day" or group_by == "week" or group_by == "month" or group_by == "year":
+            result = training_dal.get_user_training_total_between_dates_group_by(group_by, 
+                user_id, request.start, request.end)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid group by value")
+        
+        return JSONResponse(status_code=200, content=result)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})

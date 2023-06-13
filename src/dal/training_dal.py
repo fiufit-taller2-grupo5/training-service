@@ -10,8 +10,8 @@ import requests
 from constants import BLOCKED_STATE, ACTIVE_STATE
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
-from sqlalchemy import func, or_
-
+from sqlalchemy import func, or_, extract
+from decimal import Decimal
 
 class TrainingDal:
 
@@ -570,3 +570,110 @@ class TrainingDal:
                 "steps": float(user_training_totals[1] or 0),
                 "calories": float(user_training_totals[2] or 0)
             }
+
+
+
+    def query_for_days(self, session, user_id, start, end):
+        query = session.query(
+            func.concat(extract('day', UserTraining.date), "-", extract("month", UserTraining.date), "-", extract("year", UserTraining.date)).label('day'),
+            func.sum(UserTraining.distance).label("distance"),
+            func.sum(UserTraining.steps).label("steps"),
+            func.sum(UserTraining.calories).label("calories")
+        ).filter(
+            UserTraining.userId == user_id,
+            UserTraining.date >= start,
+            UserTraining.date <= end
+        ).group_by(
+            extract('day', UserTraining.date),
+            extract('month', UserTraining.date),
+            extract("year", UserTraining.date)
+        )
+        return query
+    
+    def query_for_weeks(self, session, user_id, start, end):
+        query = session.query(
+            func.concat(extract('week', UserTraining.date), "-", extract("year", UserTraining.date)).label('week'),
+            func.sum(UserTraining.distance).label("distance"),
+            func.sum(UserTraining.steps).label("steps"),
+            func.sum(UserTraining.calories).label("calories")
+        ).filter(
+            UserTraining.userId == user_id,
+            UserTraining.date >= start,
+            UserTraining.date <= end
+        ).group_by(
+            extract('week', UserTraining.date),
+            extract("year", UserTraining.date)
+        )
+        return query
+    
+    def query_for_months(self, session, user_id, start, end):
+        query = session.query(
+            func.concat(extract('month', UserTraining.date), "-", extract("year", UserTraining.date)).label('month'),
+            func.sum(UserTraining.distance).label("distance"),
+            func.sum(UserTraining.steps).label("steps"),
+            func.sum(UserTraining.calories).label("calories")
+        ).filter(
+            UserTraining.userId == user_id,
+            UserTraining.date >= start,
+            UserTraining.date <= end
+        ).group_by(
+            extract('month', UserTraining.date),
+            extract("year", UserTraining.date)
+        )
+        return query
+    
+    def query_for_years(self, session, user_id, start, end):
+        query = session.query(
+            extract("year", UserTraining.date).label('year'),
+            func.sum(UserTraining.distance).label("distance"),
+            func.sum(UserTraining.steps).label("steps"),
+            func.sum(UserTraining.calories).label("calories")
+        ).filter(
+            UserTraining.userId == user_id,
+            UserTraining.date >= start,
+            UserTraining.date <= end
+        ).group_by(
+            extract("year", UserTraining.date)
+        )
+        return query
+
+
+    def get_query_group_by(self, group_by: str, session, user_id, start, end):
+        if group_by == "day":
+            return self.query_for_days(session, user_id, start, end)
+        elif group_by == "week":
+            return self.query_for_weeks(session, user_id, start, end)
+        elif group_by == "month":
+            return self.query_for_months(session, user_id, start, end)
+        elif group_by == "year":
+            return self.query_for_years(session, user_id, start, end)
+        else:
+            raise HTTPException(
+                status_code=400, detail="Invalid group by parameter")
+
+
+
+    def get_user_training_total_between_dates_group_by(self, group_by: str, user_id: int, start: datetime, end: datetime):
+        with self.Session() as session:
+            if not start or not end:
+                raise HTTPException(
+                    status_code=401, detail="Missing required fields (start or end date)")
+
+            if start > end:
+                raise HTTPException(
+                    status_code=400, detail="Start date must be before end date")
+
+            start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+            end_str = end.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            query = self.get_query_group_by(group_by, session, user_id, start, end)
+
+
+            results = query.all()
+
+            results_dict = [
+                {key: float(value) if isinstance(value, Decimal) else value for key, value in row._asdict().items()}
+                for row in results
+            ]
+
+            return results_dict
