@@ -245,7 +245,6 @@ async def add_training(training_request: TrainingPlanRequest):
 @router.put("/{training_plan_id}/image")
 async def add_training_image(training_plan_id: int, file: UploadFile = File(...)):
     try:
-        make_dir(f"training_{training_plan_id}")
         file_name = f"{file.filename}"
         url = upload_file(file.file, f"training_{training_plan_id}_{file_name}")
         result = training_dal.add_training_image(training_plan_id, url)

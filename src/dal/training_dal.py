@@ -323,16 +323,6 @@ class TrainingDal:
                 raise HTTPException(
                     status_code=500, detail="Something went wrong")
 
-# model Multimedia {
-#   id             Int          @id @default(autoincrement())
-#   fileUrl        String
-#   type           String
-#   trainingPlanId Int
-#   trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-#   @@schema("training-service")
-# }
-
 
     def add_training_image(self, training_plan_id: int, url: str):
         with self.Session() as session:
@@ -342,7 +332,7 @@ class TrainingDal:
                         status_code=404, detail="Training plan not found")
 
                 multimedia = Multimedia(
-                    fileUrl=url, type="image/jpeg", trainingPlanId=training_plan_id)
+                    fileUrl=url, type="image/*", trainingPlanId=training_plan_id)
                 session.add(multimedia)
                 session.commit()
                 session.refresh(multimedia)

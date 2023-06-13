@@ -33,7 +33,7 @@ def make_dir(dir_name):
 def upload_file(file, file_name):
     bucket = storage.bucket()
     blob = bucket.blob(file_name)
-    blob.upload_from_file(file, content_type='image/jpeg')
+    blob.upload_from_file(file, content_type='image/*')
 
     # Make the blob public
     blob.make_public()
