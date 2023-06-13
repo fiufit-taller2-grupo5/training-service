@@ -250,7 +250,7 @@ async def add_training_image(training_plan_id: int, file: UploadFile = File(...)
         result = training_dal.add_training_image(training_plan_id, url)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
-    return JSONResponse(status_code=200, content="Image uploaded successfully download in: " + url)
+    return JSONResponse(status_code=200, content={"message": "Image uploaded successfully download in: " + url})
 
 
 @router.get("/{training_plan_id}/image")

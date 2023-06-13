@@ -40,4 +40,3 @@ class IntervalTrainingPlanRequest(BaseModel):
     start: str = None
     end: str = None
     days: str = None
-
