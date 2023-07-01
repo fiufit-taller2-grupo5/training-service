@@ -1,17 +1,20 @@
 
 from constants import BLOCKED_STATE, ACTIVE_STATE
 from services.metrics_service import send_system_metric
-from services.user_service import check_if_user_exists_by_id
+from services.user_service import check_if_user_exists_by_id, get_user_metadata
 import requests
 from fastapi import HTTPException
 from model.training_request import IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Request, Response, Depends, Header
+from fastapi import APIRouter, Response, Depends, Header
 from model.training import TrainingPlan
 from db.database import training_dal
-from firebase.firebaseUtils import make_dir, upload_file
+from firebase.firebaseUtils import upload_file
 from fastapi import UploadFile, File
 from fastapi.param_functions import File
+from services.training_recomendation_service import recommend_trainings
+from utils.age_calculator import calculate_age
+
 router = APIRouter()
 
 
@@ -156,7 +159,7 @@ async def update_training(training_plan_id: int, request: TrainingPlanRequest, x
     if user["role"] == "admin":
         training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, False)
-    else:
+    else:   
         training_plan = training_dal.get_training_plan_by_id(
             training_plan_id, True)
 
@@ -378,3 +381,26 @@ async def get_user_training_total_between_dates(user_id: int, group_by: str, req
         return JSONResponse(status_code=200, content=result)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+
+@router.get("/recommendation/{user_id}")
+async def get_recommendations(user_id: int):
+    try:
+        user_metadata = get_user_metadata(user_id)
+        age = calculate_age(user_metadata["birthDate"])
+        weight_kg = int(user_metadata["weight"])
+        height_cm = int(user_metadata["height"])
+        gender = "male"
+        interests = user_metadata["interests"]
+        last_trainings = []
+        trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
+        response = {
+            "types": trainings_response.types,
+            "difficulty": {
+                "max": trainings_response.max_difficulty,
+                "min": trainings_response.min_difficulty
+            },
+            "keywords": trainings_response.keywords
+        }
+        return JSONResponse(status_code=200, content=response)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": str(e.detail)})

@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-job-training
+spec:
+  template:
+    spec:
+      containers:
+        - name: prisma-container-training
+          image: registry.cloud.okteto.net/prod2-szwtomas/training-service-job:v4
+          command: ["npx", "prisma", "db", "push", "--force-reset"]
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:12345678@postgres-service:5432/postgres?schema=training-service"
+      restartPolicy: Never

@@ -3,11 +3,11 @@ from dal.training_dal import TrainingDal
 import os
 
 
-host = "localhost"
-port = "8888"
-if os.getenv("ENVIRONMENT") is not None and os.getenv("ENVIRONMENT") == "production":
-    host = "postgres-service"
-    port = "5432"
+#host = "localhost"
+#port = "5434"
+#if os.getenv("ENVIRONMENT") is not None and os.getenv("ENVIRONMENT") == "production":
+host = "postgres-service"
+port = "5434"
 
 
 db_name = "postgres"

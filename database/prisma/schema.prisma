@@ -1,0 +1,100 @@
+generator client {
+    provider        = "prisma-client-js"
+    binaryTargets   = ["native"]
+    previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    schemas  = ["training-service"]
+}
+
+enum TrainingType {
+    Running
+    Swimming
+    Biking
+    Yoga
+    Basketball
+    Football
+    Walking
+    Gymnastics
+    Dancing
+    Hiking
+
+    @@schema("training-service")
+}
+
+enum TrainingPlanState {
+    active
+    blocked
+
+    @@schema("training-service")
+}
+
+model TrainingPlan {
+    id                       Int                        @id @default(autoincrement())
+    title                    String
+    description              String?
+    difficulty               Int
+    trainerId                Int
+    planReviews              PlanReview[]
+    multimedia               Multimedia[]
+    state                    TrainingPlanState          @default(active)
+    type                     TrainingType
+    UserFavoriteTrainingPlan UserFavoriteTrainingPlan[]
+    UserTraining             UserTraining[]
+    location                 String
+    latitude                 String
+    longitude                String
+    days                     String
+    start                    String
+    end                      String
+
+    @@schema("training-service")
+}
+
+model Multimedia {
+    id             Int          @id @default(autoincrement())
+    fileUrl        String
+    type           String
+    trainingPlanId Int
+    trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@schema("training-service")
+}
+
+model UserFavoriteTrainingPlan {
+    userId         Int
+    trainingPlanId Int
+    trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@id([userId, trainingPlanId])
+    @@schema("training-service")
+}
+
+// test
+model PlanReview {
+    id             Int          @id @default(autoincrement())
+    userId         Int
+    comment        String?
+    score          Int
+    trainingPlanId Int
+    trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@schema("training-service")
+}
+
+model UserTraining {
+    id             Int          @id @default(autoincrement())
+    distance       Float
+    duration       String
+    steps          Int
+    calories       Int
+    date           DateTime
+    userId         Int
+    trainingPlanId Int
+    trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@schema("training-service")
+}

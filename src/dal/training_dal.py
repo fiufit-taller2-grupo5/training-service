@@ -652,7 +652,6 @@ class TrainingDal:
                 status_code=400, detail="Invalid group by parameter")
 
 
-
     def get_user_training_total_between_dates_group_by(self, group_by: str, user_id: int, start: datetime, end: datetime):
         with self.Session() as session:
             if not start or not end:
@@ -677,3 +676,14 @@ class TrainingDal:
             ]
 
             return results_dict
+        
+    def get_trainings_within_filters(self, training_type, min_dif, max_dif, keywords) -> List[TrainingPlan]:
+        with self.Session() as session:
+            query = session.query(TrainingPlan)
+            query = query.filter(TrainingPlan.type == training_type)
+            query = query.filter(TrainingPlan.difficulty >= min_dif).filter(TrainingPlan.difficulty <= max_dif)
+            if len(keywords) > 0:
+                query = query.filter(TrainingPlan.title.ilike(f"%{keyword}%" for keyword in keywords))
+            return query.limit(10).all()
+
+
