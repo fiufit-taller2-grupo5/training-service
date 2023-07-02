@@ -14,6 +14,8 @@ from fastapi import UploadFile, File
 from fastapi.param_functions import File
 from services.training_recomendation_service import recommend_trainings
 from utils.age_calculator import calculate_age
+import datetime
+import random
 
 router = APIRouter()
 
@@ -382,6 +384,31 @@ async def get_user_training_total_between_dates(user_id: int, group_by: str, req
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
 
+def get_last_trainings(training_dal, user_id):
+    last_user_trainings = training_dal.get_user_trainings(user_id)[:5]
+    last_trainings = []
+    for training in last_user_trainings:
+        training_plan_id = int(training["id"])
+        training_plan = training_dal.get_training_plan_by_id(training_plan_id).as_dict()
+        last_trainings.append(training_plan)
+    return last_trainings
+    
+def get_recommendations_response(training_dal, recommendations):
+    print("Parsing recommendations dic!")
+    '''
+    Tenemos un diccionario de la forma:
+    "types": arr[str]
+    "difficulty": {"max: int, "min": int}
+    "keywords": [str]
+    '''
+    recomendation_type = random.choice(recommendations["types"])
+    min_difficulty = recommendations["difficulty"]["min"]
+    max_difficulty = recommendations["difficulty"]["max"]
+    print(f"Looking for trainings of type {recomendation_type} and difficulty from {min_difficulty} to {max_difficulty}")
+    trainings = training_dal.get_trainings_within_filters(recomendation_type, min_difficulty, max_difficulty)
+    return trainings
+
+
 @router.get("/recommendation/{user_id}")
 async def get_recommendations(user_id: int):
     try:
@@ -391,7 +418,9 @@ async def get_recommendations(user_id: int):
         height_cm = int(user_metadata["height"])
         gender = "male"
         interests = user_metadata["interests"]
-        last_trainings = []
+        last_trainings = get_last_trainings(training_dal, user_id)
+        recommend_training_time = datetime.datetime.now()
+        print(f"Calling recommend_trainings at {recommend_training_time.hour}:{recommend_training_time.minute}:{recommend_training_time.second}")
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
         response = {
             "types": trainings_response.types,
@@ -401,6 +430,15 @@ async def get_recommendations(user_id: int):
             },
             "keywords": trainings_response.keywords
         }
-        return JSONResponse(status_code=200, content=response)
+
+        print("Got from gpt api: ")
+        print(response)
+        response_time = datetime.datetime.now()
+        print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
+
+        trainings = get_recommendations_response(training_dal, response)
+
+        return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": str(e.detail)})
+        print(f"Error in recommendations: {str(e)}")
+        return JSONResponse(status_code=500, content={"message": str(e)})

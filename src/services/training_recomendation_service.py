@@ -9,6 +9,12 @@ class TrainingRecommendationResult:
         self.max_difficulty = max_difficulty
         self.keywords = keywords
 
+def last_trainings_to_str(trainings):
+    s = ""
+    for training in trainings:
+        s += f"  - Name: {training['title']}, Type: {training['type']}, Difficulty: {training['difficulty']})\n"
+
+    return s
 
 def parse_training_recommendation_result(json_str):
     try:
@@ -44,7 +50,7 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
         keywords: ["HIIT", "Cardio", "intenso", "naturaleza", "grupal", "equipo", "aeróbico", "desafiante"]
     }
 
-    Where types can be one of: "walking" |  "running" |  "swimming" | "martial arts" | "hiking" | "yoga" | "cardio" | "muscular" | "weight lifting", and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english). Remember, respond only with that json, no text!
+    Where types can be one of:"Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing" or "Hiking" and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english). Remember, respond only with that json, no text!
 
     In this case, I will give you this input and YOU SHOULD ONLY RESPOND WITH THAT JSON:
     """
@@ -54,12 +60,13 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
     template_gpt_query += f"\n- gender: {gender}"
 
     template_gpt_query += f"\ninterests: {','.join(interests)}" 
-    template_gpt_query += f"\nlast_trainings: {','.join([str(t) for t in last_trainings])}"
+    if len(last_trainings) > 0:
+        template_gpt_query += f"\nlast trainings:\n{last_trainings_to_str(last_trainings)}"
     return template_gpt_query
 
 
 def recommend_trainings(age, weight, height, gender, interests, last_trainings):
-    openai.api_key = "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"
+    openai.api_key = "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"
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)
     model = "gpt-3.5-turbo"

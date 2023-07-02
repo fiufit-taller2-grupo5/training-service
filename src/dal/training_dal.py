@@ -510,6 +510,7 @@ class TrainingDal:
                 return []
             return [training.as_dict() for training in user_trainings]
 
+
     def get_user_trainings(self, user_id: int):
         with self.Session() as session:
             user_trainings = session.query(UserTraining).filter(
@@ -518,6 +519,7 @@ class TrainingDal:
                 return []
 
             return [training.as_dict() for training in user_trainings]
+
 
     def get_user_trainings_between_dates(self, user_id: int, start: datetime, end: datetime):
         with self.Session() as session:
@@ -677,13 +679,12 @@ class TrainingDal:
 
             return results_dict
         
-    def get_trainings_within_filters(self, training_type, min_dif, max_dif, keywords) -> List[TrainingPlan]:
+    def get_trainings_within_filters(self, training_type, min_difficulty, max_difficulty):
         with self.Session() as session:
             query = session.query(TrainingPlan)
             query = query.filter(TrainingPlan.type == training_type)
-            query = query.filter(TrainingPlan.difficulty >= min_dif).filter(TrainingPlan.difficulty <= max_dif)
-            if len(keywords) > 0:
-                query = query.filter(TrainingPlan.title.ilike(f"%{keyword}%" for keyword in keywords))
-            return query.limit(10).all()
+            query = query.filter(TrainingPlan.difficulty >= min_difficulty).filter(TrainingPlan.difficulty <= max_difficulty)
+            res = query.limit(10).all()
+            return [training.as_dict() for training in res]
 
 
