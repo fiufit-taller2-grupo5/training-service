@@ -7,7 +7,7 @@ import os
 #port = "5434"
 #if os.getenv("ENVIRONMENT") is not None and os.getenv("ENVIRONMENT") == "production":
 host = "postgres-service"
-port = "5434"
+port = "5432"
 
 
 db_name = "postgres"
