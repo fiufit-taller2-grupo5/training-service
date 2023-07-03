@@ -99,6 +99,9 @@ async def get_training_plan_by_id(training_plan_id: int, x_role: str = Header(No
         raise HTTPException(
             status_code=404, detail="Training plan not found")
 
+    
+    training_plan["multimedia"] = training_dal.get_training_images(training_plan["id"])
+
     return JSONResponse(
         status_code=200,
         content=training_plan.as_dict()
@@ -142,6 +145,8 @@ async def get_favorite_trainings(user_id):
     try:
         check_if_user_exists_by_id(user_id)
         result = training_dal.get_favorite_trainings(user_id)
+        for training in result:
+            training["multimedia"] = training_dal.get_training_images(training["id"])
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
