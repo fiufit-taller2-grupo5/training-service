@@ -61,13 +61,13 @@ class TrainingDal:
         end_split = end.split(":")
         if len(start_split[0]) != 2 or len(start_split[1]) != 2 or len(end_split[0]) != 2 or len(end_split[1]) != 2 or len(start_split) != 2 or len(end_split) != 2:
             raise HTTPException(
-                status_code=400, detail="Start and end must be in format HH:MM")
+                status_code=400, detail="Comienzo y fin deben estar en formato HH:MM")
         if int(start_split[0]) > 23 or int(start_split[1]) > 59 or int(end_split[0]) > 23 or int(end_split[1]) > 59:
             raise HTTPException(
-                status_code=401, detail="Start and end must be in format HH:MM")
+                status_code=401, detail="Hora inválida")
         if int(start_split[0]) > int(end_split[0]) or (int(start_split[0]) == int(end_split[0]) and int(start_split[1]) > int(end_split[1])):
             raise HTTPException(
-                status_code=402, detail="Start must be before end")
+                status_code=402, detail="La hora de inicio debe ser anterior a la hora de fin")
 
     def valid_days(self, days: str):
         if days is not None:
@@ -75,15 +75,15 @@ class TrainingDal:
             for day in days:
                 if day.lower().strip() not in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]:
                     raise HTTPException(
-                        status_code=400, detail="Invalid day")
+                        status_code=400, detail="día invalido")
             if len(days) != len(set(days)):
                 raise HTTPException(
-                    status_code=400, detail="Days must not repeat")
+                    status_code=400, detail="los dias deben ser únicos")
 
     def valid_interval(self, param: str, number: int, min: int, max: int):
         if number < min or number > max:
             raise HTTPException(
-                status_code=400, detail=f"{param} must be between {min} and {max}")
+                status_code=400, detail=f"{param} debe estar entre {min} y {max}")
 
     def create_training(self, training: TrainingPlan):
         return TrainingPlan(
@@ -106,7 +106,7 @@ class TrainingDal:
             try:
                 if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None or training.latitude is None or training.longitude is None:
                     raise HTTPException(
-                        status_code=400, detail="Missing required fields (trainerId, title, type, difficulty, location, start, longitude, latitude, end or days)")
+                        status_code=400, detail="Faltan campos obligatorios")
 
                 self.valid_schedule(training.start, training.end)
 
@@ -160,7 +160,7 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (start or end date)")
+                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
 
             self.valid_schedule(start, end)
 
@@ -175,7 +175,7 @@ class TrainingDal:
         with self.Session() as session:
             if not days:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (days)")
+                    status_code=401, detail="Faltan campos obligatorios (days)")
 
             self.valid_days(days)
 
@@ -192,7 +192,7 @@ class TrainingDal:
         with self.Session() as session:
             if not days or not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (days, start or end date)")
+                    status_code=401, detail="Faltan campos obligatorios (days, start o end date)")
 
             self.valid_schedule(start, end)
             self.valid_days(days)
@@ -211,7 +211,7 @@ class TrainingDal:
 
                 if not user_id or not training_id:
                     raise HTTPException(
-                        status_code=400, detail="Missing required fields (user_id or training_id)")
+                        status_code=400, detail="Faltan campos obligatorios (user_id o training_id)")
 
                 self.check_if_user_exists(user_id)
 
@@ -300,13 +300,13 @@ class TrainingDal:
 
                 if session.query(PlanReview).filter(PlanReview.userId == user_id).filter(PlanReview.trainingPlanId == training_plan_id).count() > 0:
                     raise HTTPException(
-                        status_code=408, detail="User already reviewed this training plan")
+                        status_code=408, detail="Ya has realizado una valoración de este plan de entrenamiento")
 
                 training_plan = session.query(TrainingPlan).filter(
                     TrainingPlan.id == training_plan_id).first()
                 if training_plan.trainerId == user_id:
                     raise HTTPException(
-                        status_code=409, detail="Trainer can't review his own training plan")
+                        status_code=409, detail="No puedes valorar tus propios planes de entrenamiento")
 
                 training_review = PlanReview(
                     userId=user_id, score=score, comment=comment, trainingPlanId=training_plan_id)
@@ -372,26 +372,26 @@ class TrainingDal:
         duration_split = duration.split(":")
         if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2 or len(duration_split) != 3:
             raise HTTPException(
-                status_code=400, detail="Duration must be in format HH:MM:SS")
+                status_code=400, detail="El formato debe ser HH:MM:SS")
 
         if int(duration_split[0]) < 0 or int(duration_split[1]) < 0 or int(duration_split[2]) < 0:
             raise HTTPException(
-                status_code=400, detail="Duration must be positive")
+                status_code=400, detail="La duracion debe ser positiva")
 
     def add_user_training(self, user_id: int, training_plan_id: int, distance: float, duration: float, steps: int, calories: int, date: datetime):
         with self.Session() as session:
             try:
                 if (distance is None or duration is None or steps is None or calories is None or date is None) and not (distance == 0 or duration == 0 or steps == 0 or calories == 0 or date == 0):
                     raise HTTPException(
-                        status_code=400, detail="Missing required fields (distance, duration, steps, calories or date)")
+                        status_code=400, detail="Faltan datos obligatorios")
                 date_received = date.replace(tzinfo=None)
                 if date_received > datetime.now().replace(tzinfo=None):
                     raise HTTPException(
-                        status_code=400, detail="Date can't be in the future")
+                        status_code=400, detail="La fecha no puede ser posterior a la actual")
 
                 if distance < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
-                        status_code=400, detail="Distance, duration, steps and calories must be positive")
+                        status_code=400, detail="La distancia, pasos y calorías deben ser positivos")
 
                 self.valid_duration(duration)
 
@@ -525,11 +525,11 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (start or end date)")
+                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
 
             if start > end:
                 raise HTTPException(
-                    status_code=400, detail="Start date must be before end date")
+                    status_code=400, detail="La fecha de inicio debe ser anterior a la fecha de fin")
 
             user_trainings = session.query(UserTraining).filter(
                 UserTraining.userId == user_id).filter(UserTraining.date >= start).filter(UserTraining.date <= end).all()
@@ -541,11 +541,11 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (start or end date)")
+                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
 
             if start > end:
                 raise HTTPException(
-                    status_code=400, detail="Start date must be before end date")
+                    status_code=400, detail="La fecha de inicio debe ser anterior a la fecha de fin")
 
             user_training_query = session.query(
                 func.sum(UserTraining.distance),
@@ -651,18 +651,18 @@ class TrainingDal:
             return self.query_for_years(session, user_id, start, end)
         else:
             raise HTTPException(
-                status_code=400, detail="Invalid group by parameter")
+                status_code=400, detail="Invalido valor de agrupación")
 
 
     def get_user_training_total_between_dates_group_by(self, group_by: str, user_id: int, start: datetime, end: datetime):
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Missing required fields (start or end date)")
+                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
 
             if start > end:
                 raise HTTPException(
-                    status_code=400, detail="Start date must be before end date")
+                    status_code=400, detail="La fecha de inicio debe ser anterior a la fecha de fin")
 
             start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             end_str = end.strftime("%Y-%m-%dT%H:%M:%SZ")
