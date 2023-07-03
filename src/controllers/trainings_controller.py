@@ -323,12 +323,9 @@ async def get_user_trainings_of_training_plan(training_plan_id: int, user_id: in
 
 @router.get("/user_training/{user_id}/count")
 async def get_user_trainings_count(user_id: int):
-    print("hoal")
     try:
         check_if_user_exists_by_id(user_id)
         result = training_dal.get_user_trainings_for_user_count(user_id)
-        print("AAAAAAA")
-        print(result)
         return JSONResponse(status_code=200, content=str(result))
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
