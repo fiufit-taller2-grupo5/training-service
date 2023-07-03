@@ -409,6 +409,12 @@ class TrainingDal:
                 session.rollback()
                 raise HTTPException(
                     status_code=500, detail=f"Something went wrong: {e}")
+            
+    def get_user_trainings_for_user_count(self, user_id: int):
+        with self.Session() as session:
+            user_trainings = session.query(UserTraining).filter(
+                UserTraining.userId == user_id).count()
+            return user_trainings
 
     def calculate_duration(self, session, user_id, start=None, end=None, avg=False):
         if start and end:
