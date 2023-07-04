@@ -428,12 +428,20 @@ def get_recommendations_response(training_dal, recommendations):
 async def get_recommendations(user_id: int):
     try:
         user_metadata = get_user_metadata(user_id)
-        age = calculate_age(user_metadata["birthDate"])
-        weight_kg = int(user_metadata["weight"])
-        height_cm = int(user_metadata["height"])
-        gender = "male"
-        interests = user_metadata["interests"]
-        last_trainings = get_last_trainings(training_dal, user_id)
+        if user_metadata is None:
+            age = 22
+            weight_kg = 70
+            height_cm = 170
+            gender = "male"
+            interests = ["cardio", "strength"]
+            last_trainings = []
+        else:
+            age = calculate_age(user_metadata["birthDate"])
+            weight_kg = int(user_metadata["weight"])
+            height_cm = int(user_metadata["height"])
+            gender = "male"
+            interests = user_metadata["interests"]
+            last_trainings = get_last_trainings(training_dal, user_id)
         recommend_training_time = datetime.datetime.now()
         print(f"Calling recommend_trainings at {recommend_training_time.hour}:{recommend_training_time.minute}:{recommend_training_time.second}")
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
