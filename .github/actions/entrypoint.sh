@@ -19,7 +19,7 @@ params=$(eval echo "$params")
 
 echo running: okteto build $params --build-arg OPENAI_KEY=$OPENAI_KEY
 
-okteto build $params
+okteto build $params --build-arg OPENAI_KEY=$OPENAI_KEY
 
 echo build completed successfully
 
