@@ -70,6 +70,8 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     if api_key is None:
         print("No openai api key found!")
         return None
+    else:
+        print("Found api key!")
     
     openai.api_key = api_key
     
@@ -81,9 +83,13 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     }]
     print(prompt)
 
-    chat_completion = openai.ChatCompletion.create(model=model, messages=messages)
-    result = chat_completion.choices[0].message.content
-    return parse_training_recommendation_result(result)
+    try:
+        chat_completion = openai.ChatCompletion.create(model=model, messages=messages)
+        result = chat_completion.choices[0].message.content
+        return parse_training_recommendation_result(result)
+    except:
+        print("Request to OpenAI API failed")
+        return None
 
 
 
