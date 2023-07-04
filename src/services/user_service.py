@@ -11,9 +11,8 @@ def check_if_user_exists_by_id(user_id):
   return response.json()
 
 def get_user_metadata(user_id):
-  try:
-    user_service_url = f"http://user-service:80/api/users/{user_id}/metadata"
-    response = requests.get(user_service_url, headers={"dev": "a"})
-    return response.json()
-  except:
+  user_service_url = f"http://user-service:80/api/users/{user_id}/metadata"
+  response = requests.get(user_service_url, headers={"dev": "a"})
+  if response.status_code != 200:
     return None
+  return response.json()
