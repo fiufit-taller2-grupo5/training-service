@@ -416,7 +416,7 @@ def get_recommendations_response(training_dal, recommendations):
     "difficulty": {"max: int, "min": int}
     "keywords": [str]
     '''
-    recomendation_type = random.choice(recommendations["types"])
+    recomendation_type = random.choice(recommendations["types"]) if len(recomendation_type) > 0 else "Running"
     min_difficulty = recommendations["difficulty"]["min"]
     max_difficulty = recommendations["difficulty"]["max"]
     print(f"Looking for trainings of type {recomendation_type} and difficulty from {min_difficulty} to {max_difficulty}")
@@ -450,8 +450,14 @@ async def get_recommendations(user_id: int):
         if trainings_response is None:
             return JSONResponse(status_code=500, content={"message": "Error in OpenAI api"})
     
+        allowed_training_types = ["Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing", "Hiking"]
+        recommendation_types = []
+        for t in trainings_response.types:
+            if t in allowed_training_types:
+                recommendation_types.append(t)
+
         response = {
-            "types": trainings_response.types,
+            "types": recommendation_types,
             "difficulty": {
                 "max": trainings_response.max_difficulty,
                 "min": trainings_response.min_difficulty
