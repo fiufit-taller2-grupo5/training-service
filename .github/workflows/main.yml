@@ -29,11 +29,10 @@ jobs:
       
       - name: Build image and deploy 
         uses: ./.github/actions
-        env:
-          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         with:
           tag: okteto.dev/training-service:${{ github.sha }}
           file: Dockerfile
           sha: ${{ github.sha }}
           okteto_yml: okteto_service.yml
           k8s_deployment_file: kubernetes/deployment.yml
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}

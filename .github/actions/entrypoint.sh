@@ -17,7 +17,7 @@ params=$(eval echo --progress plain -t "$tag" -f "$file")
 
 params=$(eval echo "$params")
 
-echo running: okteto build $params
+echo running: okteto build $params --build-arg OPENAI_KEY=$OPENAI_KEY
 
 okteto build $params
 

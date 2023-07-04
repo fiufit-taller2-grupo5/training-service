@@ -28,6 +28,7 @@ runs:
     - ${{ inputs.sha }}
     - ${{ inputs.okteto_yml }}
     - ${{ inputs.k8s_deployment_file }}
+    - ${{ inputs.OPENAI_KEY }}
 branding:
   color: 'green'
   icon: 'layers'

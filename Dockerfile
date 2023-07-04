@@ -1,5 +1,8 @@
 FROM python:3.10
 
+ARG OPENAI_KEY
+ENV OPENAI_KEY=$OPENAI_KEY
+
 WORKDIR /app
 
 COPY ./requirements.txt .
