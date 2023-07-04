@@ -447,6 +447,8 @@ async def get_recommendations(user_id: int):
         recommend_training_time = datetime.datetime.now()
         print(f"Calling recommend_trainings at {recommend_training_time.hour}:{recommend_training_time.minute}:{recommend_training_time.second}")
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
+        if trainings_response is None:
+            return JSONResponse(status_code=500, content={"message": "Error in gpt api: no api key"})
         response = {
             "types": trainings_response.types,
             "difficulty": {

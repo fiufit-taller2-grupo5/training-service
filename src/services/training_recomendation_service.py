@@ -67,7 +67,11 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
 
 def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     api_key = os.getenv("OPENAI_KEY")
-    openai.api_key = "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"
+    if api_key is None:
+        print("No openai api key found!")
+        return None
+    
+    openai.api_key = api_key
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)
     model = "gpt-3.5-turbo"
