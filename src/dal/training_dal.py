@@ -727,11 +727,13 @@ class TrainingDal:
             query = query.filter(TrainingPlan.type == training_type)
             query = query.filter(TrainingPlan.difficulty >= min_difficulty).filter(TrainingPlan.difficulty <= max_difficulty)
             res = query.limit(10).all()
+            print(f"Res: " + res)
             try:
                 res_keyword_1 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
                 res_keyword_2 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
                 res_keyword_3 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
                 res = res + res_keyword_1 + res_keyword_2 + res_keyword_3
+                print("Res with keywords" + res)
             except Exception as e:
                 print(f"Failed getting trainings by keyword: {e}")
 
