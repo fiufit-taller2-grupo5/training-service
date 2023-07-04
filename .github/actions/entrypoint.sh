@@ -6,6 +6,7 @@ file=$2
 sha=$3
 okteto_yml=$4
 k8s_deploment_file=$5
+OPENAI_KEY=$6
 
 if [ ! -z "$OKTETO_CA_CERT" ]; then
    echo "Custom certificate is provided"
