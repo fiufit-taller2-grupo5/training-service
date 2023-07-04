@@ -74,6 +74,8 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
         print("Found api key!")
     
     openai.api_key = api_key
+    print(f"Read api key: {api_key}")
+    print(f"Api key: {openai.api_key}")
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)
     model = "gpt-3.5-turbo"
