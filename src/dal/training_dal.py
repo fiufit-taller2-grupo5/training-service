@@ -632,7 +632,7 @@ class TrainingDal:
     
     def query_for_years(self, session, user_id, start, end):
         query = session.query(
-            extract("year", UserTraining.date).label('year'),
+            func.concat(extract("year", UserTraining.date)).label('year'),
             func.sum(UserTraining.distance).label("distance"),
             func.sum(UserTraining.steps).label("steps"),
             func.sum(UserTraining.calories).label("calories")
