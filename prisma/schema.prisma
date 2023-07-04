@@ -59,7 +59,9 @@ model Multimedia {
   fileUrl        String
   type           String
   trainingPlanId Int
-  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  athleteGoalId  Int?
+  trainingPlan   TrainingPlan? @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  athleteGoal  AthleteGoal? @relation(fields: [athleteGoalId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@schema("training-service")
 }
@@ -98,3 +100,16 @@ model UserTraining {
 
   @@schema("training-service")
 }
+
+model AthleteGoal {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  type        String
+  metric      Int
+  athleteId   Int
+  multimedia  Multimedia[]
+
+  @@schema("training-service")
+}
+

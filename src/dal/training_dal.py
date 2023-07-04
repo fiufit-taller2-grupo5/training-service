@@ -2,7 +2,7 @@ from ast import FunctionDef
 from decimal import Decimal
 from sqlite3 import IntegrityError
 from sqlalchemy.orm import sessionmaker
-from model.training import Multimedia, TrainingPlan
+from model.training import AthleteGoal, Multimedia, TrainingPlan
 from typing import List
 from model.training import UserFavoriteTrainingPlan, PlanReview, UserTraining
 from fastapi import HTTPException
@@ -737,3 +737,41 @@ class TrainingDal:
 
             return res_filtered
 
+
+    def create_athlete_goal(self, title: str, description: str, type: str, metric: str, athlete_id: int):
+        with self.Session() as session:
+            self.check_if_user_exists(athlete_id)
+
+            if title is None or type is None or description is None:
+                raise HTTPException(
+                    status_code=400, detail="Faltan campos obligatorios (titulo, tipo o descripción)")
+            
+            if metric < 0:
+                raise HTTPException(
+                    status_code=400, detail="La métrica debe ser positiva")
+            
+            if type not in ["Calorias", "Pasos", "Distancia"]:
+                raise HTTPException(
+                    status_code=400, detail="Tipo de objetivo inválido: (Calorias, Pasos, Distancia))")
+
+            new_athlete_goal = AthleteGoal(
+                title=title,
+                description=description,
+                type=type,
+                metric=metric,
+                athleteId=athlete_id
+            )
+
+            session.add(new_athlete_goal)
+            session.commit()
+            session.refresh(new_athlete_goal)
+            return new_athlete_goal
+
+    def get_athlete_goals(self, athlete_id: int):
+        with self.Session() as session:
+            self.check_if_user_exists(athlete_id)
+            goals = session.query(AthleteGoal).filter(
+                AthleteGoal.athleteId == athlete_id).all()
+            if not goals:
+                return []
+            return [goal.as_dict() for goal in goals]

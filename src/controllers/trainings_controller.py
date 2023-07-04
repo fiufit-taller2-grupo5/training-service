@@ -4,7 +4,7 @@ from services.metrics_service import send_system_metric
 from services.user_service import check_if_user_exists_by_id, get_user_metadata
 import requests
 from fastapi import HTTPException
-from model.training_request import IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
+from model.training_request import AthleteGoalRequest, IntervalTrainingPlanRequest, IntervalUserTrainingRequest, TrainingPlanRequest, PlanReviewRequest, UserTrainingRequest
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Response, Depends, Header
 from model.training import TrainingPlan
@@ -457,3 +457,21 @@ async def get_recommendations(user_id: int):
     except Exception as e:
         print(f"Error in recommendations: {e}")
         return JSONResponse(status_code=500, content={"message": e})
+    
+
+
+@router.post("/goals/{athlete_id}")
+async def add_athlete_goal(athlete_id: int, request: AthleteGoalRequest):
+    try:
+        result = training_dal.create_athlete_goal(request.title, request.description, request.type, request.metric, athlete_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result.as_dict())
+
+@router.get("/goals/{athlete_id}")
+async def get_athlete_goals(athlete_id: int):
+    try:
+        result = training_dal.get_athlete_goals(athlete_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result)

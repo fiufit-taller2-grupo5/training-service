@@ -40,3 +40,10 @@ class IntervalTrainingPlanRequest(BaseModel):
     start: str = None
     end: str = None
     days: str = None
+
+
+class AthleteGoalRequest(BaseModel):
+    title: str = None
+    description: str = None
+    type: str = None
+    metric: int = None

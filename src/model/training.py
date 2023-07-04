@@ -38,6 +38,26 @@ class TrainingPlan(Base):
             "end": self.end,
             "days": self.days,
         }
+    
+class AthleteGoal(Base):
+    __tablename__ = "AthleteGoal"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    type = Column(String, nullable=True)
+    metric = Column(Integer, nullable=True)
+    athleteId = Column(Integer, nullable=True)
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "type": self.type,
+            "metric": self.metric,
+            "athleteId": self.athleteId,
+        }
 
 
 
