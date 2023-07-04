@@ -19,6 +19,9 @@ inputs:
     description: 'Use global when you want to make the image availbale to everyone in your team'
     required: false
     default: "false"
+  OPENAI_KEY:
+    description: 'OpenAI API Key'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
