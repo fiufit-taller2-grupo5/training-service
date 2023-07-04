@@ -370,7 +370,11 @@ class TrainingDal:
 
     def valid_duration(self, duration: str):
         duration_split = duration.split(":")
-        if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2 or len(duration_split) != 3:
+        if (len(duration_split) < 3):
+            raise HTTPException(
+                status_code=400, detail="El formato debe ser HH:MM:SS")
+        
+        if len(duration_split[0]) != 2 or len(duration_split[1]) != 2 or len(duration_split[2]) != 2:
             raise HTTPException(
                 status_code=400, detail="El formato debe ser HH:MM:SS")
 
@@ -392,8 +396,9 @@ class TrainingDal:
                 if distance < 0 or steps < 0 or calories < 0:
                     raise HTTPException(
                         status_code=400, detail="La distancia, pasos y calorías deben ser positivos")
-
+                print("ANTES DE VALID DURATION")
                 self.valid_duration(duration)
+                print("DESPUES DE VALID DURATION")
 
                 user_training = UserTraining(userId=user_id, trainingPlanId=training_plan_id,
                                              distance=distance, duration=duration, steps=steps, calories=calories, date=date)
