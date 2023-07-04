@@ -1,6 +1,6 @@
 import openai
 import json
-
+import os
 
 class TrainingRecommendationResult:
     def __init__(self, types, min_difficulty, max_difficulty, keywords):
@@ -50,7 +50,8 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
         keywords: ["HIIT", "Cardio", "intenso", "naturaleza", "grupal", "equipo", "aeróbico", "desafiante"]
     }
 
-    Where types can be one of:"Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing" or "Hiking" and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english). Remember, respond only with that json, no text!
+    Where the only allowed types can be one of:"Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing" or "Hiking" and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english).
+    Remember, respond only with that json, no text! Also respond with one of the ALLOWED types
 
     In this case, I will give you this input and YOU SHOULD ONLY RESPOND WITH THAT JSON:
     """
@@ -66,7 +67,12 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
 
 
 def recommend_trainings(age, weight, height, gender, interests, last_trainings):
-    openai.api_key = "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"
+    api_key = os.getenv("OPENAI_KEY")
+    if api_key is None:
+        print("No openai api key found!")
+        return None
+
+    openai.api_key = api_key
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)
     model = "gpt-3.5-turbo"
@@ -76,9 +82,13 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     }]
     print(prompt)
 
-    chat_completion = openai.ChatCompletion.create(model=model, messages=messages)
-    result = chat_completion.choices[0].message.content
-    return parse_training_recommendation_result(result)
+    try:
+        chat_completion = openai.ChatCompletion.create(model=model, messages=messages)
+        result = chat_completion.choices[0].message.content
+        return parse_training_recommendation_result(result)
+    except Exception as e:
+        print(f"Request to OpenAI API failed with error: {e}")
+        return None
 
 
 

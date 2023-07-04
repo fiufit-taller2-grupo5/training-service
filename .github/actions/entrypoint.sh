@@ -6,6 +6,7 @@ file=$2
 sha=$3
 okteto_yml=$4
 k8s_deploment_file=$5
+OPENAI_KEY=$6
 
 if [ ! -z "$OKTETO_CA_CERT" ]; then
    echo "Custom certificate is provided"
@@ -17,9 +18,9 @@ params=$(eval echo --progress plain -t "$tag" -f "$file")
 
 params=$(eval echo "$params")
 
-echo running: okteto build $params
+echo running: okteto build $params --build-arg OPENAI_KEY=$OPENAI_KEY
 
-okteto build $params
+okteto build $params --build-arg OPENAI_KEY=$OPENAI_KEY
 
 echo build completed successfully
 

@@ -416,11 +416,11 @@ def get_recommendations_response(training_dal, recommendations):
     "difficulty": {"max: int, "min": int}
     "keywords": [str]
     '''
-    recomendation_type = random.choice(recommendations["types"])
+    recomendation_type = random.choice(recommendations["types"]) if len(recommendations["types"]) > 0 else "Running"
     min_difficulty = recommendations["difficulty"]["min"]
     max_difficulty = recommendations["difficulty"]["max"]
     print(f"Looking for trainings of type {recomendation_type} and difficulty from {min_difficulty} to {max_difficulty}")
-    trainings = training_dal.get_trainings_within_filters(recomendation_type, min_difficulty, max_difficulty)
+    trainings = training_dal.get_trainings_within_filters(recomendation_type, min_difficulty, max_difficulty, recommendations["keywords"])
     return trainings
 
 
@@ -428,17 +428,36 @@ def get_recommendations_response(training_dal, recommendations):
 async def get_recommendations(user_id: int):
     try:
         user_metadata = get_user_metadata(user_id)
-        age = calculate_age(user_metadata["birthDate"])
-        weight_kg = int(user_metadata["weight"])
-        height_cm = int(user_metadata["height"])
-        gender = "male"
-        interests = user_metadata["interests"]
-        last_trainings = get_last_trainings(training_dal, user_id)
+        if user_metadata is None:
+            print(f"User {user_id} does not have metadata, using random data")
+            age = 22
+            weight_kg = 70
+            height_cm = 170
+            gender = "male"
+            interests = ["cardio", "strength"]
+            last_trainings = []
+        else:
+            print(f"Found metadata for user {user_id}")
+            age = calculate_age(user_metadata["birthDate"])
+            weight_kg = int(user_metadata["weight"])
+            height_cm = int(user_metadata["height"])
+            gender = "male"
+            interests = user_metadata["interests"]
+            last_trainings = get_last_trainings(training_dal, user_id)
         recommend_training_time = datetime.datetime.now()
         print(f"Calling recommend_trainings at {recommend_training_time.hour}:{recommend_training_time.minute}:{recommend_training_time.second}")
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
+        if trainings_response is None:
+            return JSONResponse(status_code=500, content={"message": "Error in OpenAI api"})
+    
+        allowed_training_types = ["Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing", "Hiking"]
+        recommendation_types = []
+        for t in trainings_response.types:
+            if t in allowed_training_types:
+                recommendation_types.append(t)
+
         response = {
-            "types": trainings_response.types,
+            "types": recommendation_types,
             "difficulty": {
                 "max": trainings_response.max_difficulty,
                 "min": trainings_response.min_difficulty
@@ -446,14 +465,16 @@ async def get_recommendations(user_id: int):
             "keywords": trainings_response.keywords
         }
 
-        #print("Got from gpt api: ")
-        #print(response)
-        #response_time = datetime.datetime.now()
-        #print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
+        
 
-        # trainings = get_recommendations_response(training_dal, response)
+        print("Got from gpt api: ")
+        print(response)
+        response_time = datetime.datetime.now()
+        print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
 
-        return JSONResponse(status_code=200, content=response)
+        trainings = get_recommendations_response(training_dal, response)
+
+        return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
         print(f"Error in recommendations: {e}")
         return JSONResponse(status_code=500, content={"message": e})

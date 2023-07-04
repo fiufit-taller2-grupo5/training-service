@@ -19,6 +19,9 @@ inputs:
     description: 'Use global when you want to make the image availbale to everyone in your team'
     required: false
     default: "false"
+  OPENAI_KEY:
+    description: 'OpenAI API Key'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -28,6 +31,7 @@ runs:
     - ${{ inputs.sha }}
     - ${{ inputs.okteto_yml }}
     - ${{ inputs.k8s_deployment_file }}
+    - ${{ inputs.OPENAI_KEY }}
 branding:
   color: 'green'
   icon: 'layers'

@@ -701,9 +701,10 @@ class TrainingDal:
             return results_dict
         
     def get_trainings_by_keyword(self, session, keyword):
+        print(f"Getting trainings for keyword: {keyword}")
         query = session.query(TrainingPlan)
         query = query.filter(TrainingPlan.name.ilike(f"%{keyword}%"))
-        res = query.limit(2).all()
+        return query.limit(2).all()
 
 
     def filter_repeated(self, trainings):
@@ -726,15 +727,17 @@ class TrainingDal:
             query = query.filter(TrainingPlan.type == training_type)
             query = query.filter(TrainingPlan.difficulty >= min_difficulty).filter(TrainingPlan.difficulty <= max_difficulty)
             res = query.limit(10).all()
-
-            res_keyword_1 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
-            res_keyword_2 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
-            res_keyword_3 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
-
-            res = res + res_keyword_1 + res_keyword_2 + res_keyword_3
+            print(f"Res: {res}")
+            try:
+                res_keyword_1 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+                res_keyword_2 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+                res_keyword_3 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+                res = res + res_keyword_1 + res_keyword_2 + res_keyword_3
+                print(f"Res with keywords: {res}" )
+            except Exception as e:
+                print(f"Failed getting trainings by keyword: {e}")
 
             res_filtered = self.filter_repeated(res)
-
             return res_filtered
 
 
