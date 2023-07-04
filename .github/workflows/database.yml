@@ -20,7 +20,7 @@ jobs:
       - name: Create devlopment environments namespace
         uses: okteto/namespace@latest
         with:
-          namespace: prod-szwtomas
+          namespace: prod2-szwtomas
       
       - name: Build image and deploy 
         uses: ./.github/actions
