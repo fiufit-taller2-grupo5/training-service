@@ -420,7 +420,7 @@ def get_recommendations_response(training_dal, recommendations):
     min_difficulty = recommendations["difficulty"]["min"]
     max_difficulty = recommendations["difficulty"]["max"]
     print(f"Looking for trainings of type {recomendation_type} and difficulty from {min_difficulty} to {max_difficulty}")
-    trainings = training_dal.get_trainings_within_filters(recomendation_type, min_difficulty, max_difficulty)
+    trainings = training_dal.get_trainings_within_filters(recomendation_type, min_difficulty, max_difficulty, recommendations["keywords"])
     return trainings
 
 
