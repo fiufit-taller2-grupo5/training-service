@@ -106,7 +106,7 @@ class TrainingDal:
             try:
                 if training.trainerId is None or training.title is None or training.type is None or training.difficulty is None or training.location is None or training.start is None or training.end is None or training.days is None or training.latitude is None or training.longitude is None:
                     raise HTTPException(
-                        status_code=400, detail="Faltan campos obligatorios")
+                        status_code=400, detail="Faltan campos obligatorios (trainerId, titulo, tipo, dificultad, localización, inicio, fin, días, latitud o longitud)")
 
                 self.valid_schedule(training.start, training.end)
 
@@ -160,7 +160,7 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
+                    status_code=401, detail="Faltan campos obligatorios (comienzo o fin)")
 
             self.valid_schedule(start, end)
 
@@ -175,7 +175,7 @@ class TrainingDal:
         with self.Session() as session:
             if not days:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (days)")
+                    status_code=401, detail="Faltan campos obligatorios (dias)")
 
             self.valid_days(days)
 
@@ -192,7 +192,7 @@ class TrainingDal:
         with self.Session() as session:
             if not days or not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (days, start o end date)")
+                    status_code=401, detail="Faltan campos obligatorios (dias, comienzo o fin)")
 
             self.valid_schedule(start, end)
             self.valid_days(days)
@@ -288,7 +288,7 @@ class TrainingDal:
 
                 if not user_id or not training_plan_id or not score:
                     raise HTTPException(
-                        status_code=400, detail="Missing required fields (user_id, training_plan_id or score))")
+                        status_code=400, detail="Faltn campos obligatorios (user_id, training_plan_id o score)")
 
                 self.valid_interval("Score", score, 1, 5)
 
@@ -383,7 +383,7 @@ class TrainingDal:
             try:
                 if (distance is None or duration is None or steps is None or calories is None or date is None) and not (distance == 0 or duration == 0 or steps == 0 or calories == 0 or date == 0):
                     raise HTTPException(
-                        status_code=400, detail="Faltan datos obligatorios")
+                        status_code=400, detail="Faltan datos obligatorios (distancia, duración, pasos, calorías o fecha)") 
                 date_received = date.replace(tzinfo=None)
                 if date_received > datetime.now().replace(tzinfo=None):
                     raise HTTPException(
@@ -531,7 +531,7 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
+                    status_code=401, detail="Faltan campos obligatorios (comienzo o fin)")
 
             if start > end:
                 raise HTTPException(
@@ -547,7 +547,7 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
+                    status_code=401, detail="Faltan campos obligatorios (comienzo o fin)")
 
             if start > end:
                 raise HTTPException(
@@ -664,7 +664,7 @@ class TrainingDal:
         with self.Session() as session:
             if not start or not end:
                 raise HTTPException(
-                    status_code=401, detail="Faltan campos obligatorios (start o end date)")
+                    status_code=401, detail="Faltan campos obligatorios (comienzo o fin)")
 
             if start > end:
                 raise HTTPException(

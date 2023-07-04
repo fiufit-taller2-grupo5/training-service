@@ -100,7 +100,9 @@ async def get_training_plan_by_id(training_plan_id: int, x_role: str = Header(No
             status_code=404, detail="Training plan not found")
 
     
-    training_plan["multimedia"] = training_dal.get_training_images(training_plan["id"])
+    # add to the response the multimedia
+    training_plan.multimedia = training_dal.get_training_images(
+        training_plan.id)
 
     return JSONResponse(
         status_code=200,
