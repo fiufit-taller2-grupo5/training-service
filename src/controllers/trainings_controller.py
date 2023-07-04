@@ -385,7 +385,7 @@ async def get_user_training_total_between_dates(user_id: int, request: IntervalU
 
 
 
-@router.get("/user_training/{user_id}/between_dates/group_by/{group_by}")
+@router.post("/user_training/{user_id}/between_dates/group_by/{group_by}")
 async def get_user_training_total_between_dates(user_id: int, group_by: str, request: IntervalUserTrainingRequest):
     try:
         check_if_user_exists_by_id(user_id)
