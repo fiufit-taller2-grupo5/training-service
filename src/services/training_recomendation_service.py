@@ -1,6 +1,6 @@
 import openai
 import json
-
+import os
 
 class TrainingRecommendationResult:
     def __init__(self, types, min_difficulty, max_difficulty, keywords):
@@ -66,6 +66,7 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
 
 
 def recommend_trainings(age, weight, height, gender, interests, last_trainings):
+    api_key = os.getenv("OPENAI_KEY")
     openai.api_key = "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"
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)

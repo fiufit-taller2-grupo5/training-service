@@ -29,6 +29,8 @@ jobs:
       
       - name: Build image and deploy 
         uses: ./.github/actions
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         with:
           tag: okteto.dev/training-service:${{ github.sha }}
           file: Dockerfile
