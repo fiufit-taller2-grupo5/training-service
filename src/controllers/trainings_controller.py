@@ -429,6 +429,7 @@ async def get_recommendations(user_id: int):
     try:
         user_metadata = get_user_metadata(user_id)
         if user_metadata is None:
+            print(f"User {user_id} does not have metadata, using random data")
             age = 22
             weight_kg = 70
             height_cm = 170
@@ -436,6 +437,7 @@ async def get_recommendations(user_id: int):
             interests = ["cardio", "strength"]
             last_trainings = []
         else:
+            print(f"Found metadata for user {user_id}")
             age = calculate_age(user_metadata["birthDate"])
             weight_kg = int(user_metadata["weight"])
             height_cm = int(user_metadata["height"])
