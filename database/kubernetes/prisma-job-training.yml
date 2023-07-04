@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: prisma-container-training
-          image: registry.cloud.okteto.net/prod2-szwtomas/training-service-job:v4
+          image: registry.cloud.okteto.net/prod2-szwtomas/training-service-job:latest
           command: ["npx", "prisma", "db", "push", "--force-reset"]
           env:
             - name: DATABASE_URL
