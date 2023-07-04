@@ -446,14 +446,14 @@ async def get_recommendations(user_id: int):
             "keywords": trainings_response.keywords
         }
 
-        print("Got from gpt api: ")
-        print(response)
-        response_time = datetime.datetime.now()
-        print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
+        #print("Got from gpt api: ")
+        #print(response)
+        #response_time = datetime.datetime.now()
+        #print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
 
-        trainings = get_recommendations_response(training_dal, response)
+        # trainings = get_recommendations_response(training_dal, response)
 
-        return JSONResponse(status_code=200, content=trainings)
+        return JSONResponse(status_code=200, content=response)
     except Exception as e:
-        print(f"Error in recommendations: {str(e)}")
-        return JSONResponse(status_code=500, content={"message": str(e)})
+        print(f"Error in recommendations: {e}")
+        return JSONResponse(status_code=500, content={"message": e})
