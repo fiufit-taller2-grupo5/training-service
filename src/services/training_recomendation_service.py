@@ -50,7 +50,8 @@ def build_prompt(age, weight, height, gender, interests, last_trainings):
         keywords: ["HIIT", "Cardio", "intenso", "naturaleza", "grupal", "equipo", "aeróbico", "desafiante"]
     }
 
-    Where types can be one of:"Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing" or "Hiking" and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english). Remember, respond only with that json, no text!
+    Where the only allowed types can be one of:"Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing" or "Hiking" and you should include up to 3 types, difficulty is from 1 to 10, where 10 is the hardest, and add up to 10 keywords for the training name like in the example (in english).
+    Remember, respond only with that json, no text! Also respond with one of the ALLOWED types
 
     In this case, I will give you this input and YOU SHOULD ONLY RESPOND WITH THAT JSON:
     """

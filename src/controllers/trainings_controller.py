@@ -449,6 +449,7 @@ async def get_recommendations(user_id: int):
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
         if trainings_response is None:
             return JSONResponse(status_code=500, content={"message": "Error in OpenAI api"})
+    
         response = {
             "types": trainings_response.types,
             "difficulty": {
@@ -457,6 +458,8 @@ async def get_recommendations(user_id: int):
             },
             "keywords": trainings_response.keywords
         }
+
+        
 
         print("Got from gpt api: ")
         print(response)
