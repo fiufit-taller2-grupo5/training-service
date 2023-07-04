@@ -12,6 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_, extract
 from decimal import Decimal
+import random
 
 class TrainingDal:
 
@@ -699,11 +700,40 @@ class TrainingDal:
 
             return results_dict
         
-    def get_trainings_within_filters(self, training_type, min_difficulty, max_difficulty):
+    def get_trainings_by_keyword(self, session, keyword):
+        query = session.query(TrainingPlan)
+        query = query.filter(TrainingPlan.name.ilike(f"%{keyword}%"))
+        res = query.limit(2).all()
+
+
+    def filter_repeated(self, trainings):
+        res = []
+        for t in trainings:
+            t_dic = t.as_dict()
+            exists = False
+            for training in res:
+                if t_dic["id"] == training["id"]:
+                    exists = True
+                
+            if not exists:
+                res.append(t_dic)
+        
+        return res
+
+    def get_trainings_within_filters(self, training_type, min_difficulty, max_difficulty, keywords):
         with self.Session() as session:
             query = session.query(TrainingPlan)
             query = query.filter(TrainingPlan.type == training_type)
             query = query.filter(TrainingPlan.difficulty >= min_difficulty).filter(TrainingPlan.difficulty <= max_difficulty)
             res = query.limit(10).all()
-            return [training.as_dict() for training in res]
+
+            res_keyword_1 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+            res_keyword_2 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+            res_keyword_3 = self.get_trainings_by_keyword(session, training_type, random.choice(keywords))
+
+            res = res + res_keyword_1 + res_keyword_2 + res_keyword_3
+
+            res_filtered = self.filter_repeated(res)
+
+            return res_filtered
 
