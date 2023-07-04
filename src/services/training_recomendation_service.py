@@ -71,12 +71,8 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     if api_key is None:
         print("No openai api key found!")
         return None
-    else:
-        print(f"Found api key! Is of length {len(api_key)}")
-    
+
     openai.api_key = api_key
-    print(f"Read api key: {api_key}")
-    print(f"Api key: {openai.api_key}")
     
     prompt = build_prompt(age, weight, height, gender, interests, last_trainings)
     model = "gpt-3.5-turbo"

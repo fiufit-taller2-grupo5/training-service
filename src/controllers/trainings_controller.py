@@ -416,7 +416,7 @@ def get_recommendations_response(training_dal, recommendations):
     "difficulty": {"max: int, "min": int}
     "keywords": [str]
     '''
-    recomendation_type = random.choice(recommendations["types"]) if len(recomendation_type) > 0 else "Running"
+    recomendation_type = random.choice(recommendations["types"]) if len(recommendations["types"]) > 0 else "Running"
     min_difficulty = recommendations["difficulty"]["min"]
     max_difficulty = recommendations["difficulty"]["max"]
     print(f"Looking for trainings of type {recomendation_type} and difficulty from {min_difficulty} to {max_difficulty}")
