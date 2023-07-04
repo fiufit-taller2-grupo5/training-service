@@ -653,16 +653,18 @@ class TrainingDal:
 
     def get_query_group_by(self, group_by: str, session, user_id, start, end):
         if group_by == "day":
-            return self.query_for_days(session, user_id, start, end)
+            query = self.query_for_days(session, user_id, start, end)
         elif group_by == "week":
-            return self.query_for_weeks(session, user_id, start, end)
+            query = self.query_for_weeks(session, user_id, start, end)
         elif group_by == "month":
-            return self.query_for_months(session, user_id, start, end)
+            query = self.query_for_months(session, user_id, start, end)
         elif group_by == "year":
-            return self.query_for_years(session, user_id, start, end)
+            query = self.query_for_years(session, user_id, start, end)
         else:
             raise HTTPException(
-                status_code=400, detail="Invalido valor de agrupación")
+                status_code=400, detail="Invalid value for grouping")
+        
+        return query
 
 
     def get_user_training_total_between_dates_group_by(self, group_by: str, user_id: int, start: datetime, end: datetime):
@@ -678,15 +680,22 @@ class TrainingDal:
             start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             end_str = end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            query = self.get_query_group_by(group_by, session, user_id, start, end)
-
+            query = self.get_query_group_by(group_by, session, user_id, start_str, end_str)
 
             results = query.all()
 
-            results_dict = [
-                {key: float(value) if isinstance(value, Decimal) else value for key, value in row._asdict().items()}
-                for row in results
-            ]
+            results_dict = {
+                "label": [],
+                "distance": [],
+                "steps": [],
+                "calories": []
+            }
+
+            for row in results:
+                results_dict["label"].append(getattr(row, group_by))
+                results_dict["distance"].append(row.distance)
+                results_dict["steps"].append(row.steps)
+                results_dict["calories"].append(row.calories)
 
             return results_dict
         
@@ -697,5 +706,4 @@ class TrainingDal:
             query = query.filter(TrainingPlan.difficulty >= min_difficulty).filter(TrainingPlan.difficulty <= max_difficulty)
             res = query.limit(10).all()
             return [training.as_dict() for training in res]
-
 
