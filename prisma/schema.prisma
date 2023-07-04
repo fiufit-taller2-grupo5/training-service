@@ -58,7 +58,7 @@ model Multimedia {
   id             Int          @id @default(autoincrement())
   fileUrl        String
   type           String
-  trainingPlanId Int
+  trainingPlanId Int?
   athleteGoalId  Int?
   trainingPlan   TrainingPlan? @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   athleteGoal  AthleteGoal? @relation(fields: [athleteGoalId], references: [id], onDelete: Cascade, onUpdate: Cascade)

@@ -68,6 +68,7 @@ class Multimedia(Base):
     fileUrl = Column(String, nullable=True)
     type = Column(String, nullable=True)
     trainingPlanId = Column(Integer, nullable=True)
+    athleteGoalId = Column(Integer, nullable=True)
 
     def as_dict(self):
         return {
@@ -75,6 +76,7 @@ class Multimedia(Base):
             "fileUrl": self.fileUrl,
             "type": self.type,
             "trainingPlanId": self.trainingPlanId,
+            "AthleteGoalId": self.athleteGoalId,
         }
     
 

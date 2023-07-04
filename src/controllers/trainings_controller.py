@@ -475,3 +475,36 @@ async def get_athlete_goals(athlete_id: int):
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
+
+
+
+@router.put("/goals/{goal_id}")
+async def update_athlete_goal(goal_id: int, request: AthleteGoalRequest):
+    try:
+        result = training_dal.update_athlete_goal(goal_id, request.title, request.description, request.type, request.metric)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content=result.as_dict())
+
+@router.delete("/goals/{goal_id}")
+async def delete_athlete_goal(goal_id: int):
+    try:
+        training_dal.delete_athelete_goal(goal_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content={"message": "Goal deleted successfully"})
+
+
+@router.post("/goals/{goal_id}/multimedia")
+async def add_athlete_goal_image(goal_id: int, file: UploadFile = File(...)):
+    try:        
+        athlete_id = training_dal.get_athlete_goal_by_id(goal_id)["athleteId"]
+        print(f"Uploading image for athlete {athlete_id}")
+        file_name = f"{file.filename}"
+        url = upload_file(file.file, f"goals/{athlete_id}/{file_name}")
+        result = training_dal.add_multimedia_to_athlete_goal(goal_id, url)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
+    return JSONResponse(status_code=200, content={"message": "Image uploaded successfully download in: " + url})
+
+

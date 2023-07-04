@@ -775,3 +775,62 @@ class TrainingDal:
             if not goals:
                 return []
             return [goal.as_dict() for goal in goals]
+
+
+    def check_if_athlete_goal_exists(self, goal_id: int):
+        with self.Session() as session:
+            athlete = session.query(AthleteGoal).filter(AthleteGoal.id == goal_id).first()
+            if not athlete:    
+                raise HTTPException(
+                    status_code=404, detail="Objetivo no encontrado")
+            else:
+                return athlete
+
+
+    def delete_athelete_goal(self, goal_id: int):
+        with self.Session() as session:
+            goal = self.check_if_athlete_goal_exists(goal_id)
+            session.delete(goal)
+            session.commit()
+            return goal
+        
+    def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str):
+        with self.Session() as session:
+            goal = self.check_if_athlete_goal_exists(goal_id)
+
+            if metric < 0:
+                raise HTTPException(
+                    status_code=400, detail="La métrica debe ser positiva")
+            
+            if type not in ["Calorias", "Pasos", "Distancia"]:
+                raise HTTPException(
+                    status_code=400, detail="Tipo de objetivo inválido: (Calorias, Pasos, Distancia))")
+            
+
+            if title is not None:
+                goal.title = title
+            if description is not None:
+                goal.description = description
+            if type is not None:
+                goal.type = type
+            if metric is not None:
+                goal.metric = metric
+            session.commit()
+            return goal
+        
+    def add_multimedia_to_athlete_goal(self, goal_id: int, url: str):
+        with self.Session() as session:
+            goal = self.check_if_athlete_goal_exists(goal_id)
+            
+            multimedia = Multimedia(
+                fileUrl=url, type="image/*", athleteGoalId=goal_id)
+            session.add(multimedia)
+            session.commit()
+            session.refresh(multimedia)
+            return multimedia
+        
+
+    def get_athlete_goal_by_id(self, goal_id: int):
+        with self.Session() as session:
+            goal = self.check_if_athlete_goal_exists(goal_id)
+            return goal.as_dict()
