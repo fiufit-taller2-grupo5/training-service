@@ -800,7 +800,6 @@ class TrainingDal:
     def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str):
         with self.Session() as session:
             goal = self.check_if_athlete_goal_exists(goal_id)
-
             if metric < 0:
                 raise HTTPException(
                     status_code=400, detail="La métrica debe ser positiva")
@@ -810,16 +809,18 @@ class TrainingDal:
                     status_code=400, detail="Tipo de objetivo inválido: (Calorias, Pasos, Distancia))")
             
 
-            if title is not None:
-                goal.title = title
-            if description is not None:
-                goal.description = description
-            if type is not None:
-                goal.type = type
-            if metric is not None:
-                goal.metric = metric
+            session.query(AthleteGoal).filter(AthleteGoal.id == goal_id).update({
+                AthleteGoal.title: title,
+                AthleteGoal.description: description,
+                AthleteGoal.type: type,
+                AthleteGoal.metric: metric
+            })
             session.commit()
-            return goal
+
+            updated_goal = session.query(AthleteGoal).filter(
+                AthleteGoal.id == goal_id).first()
+            return updated_goal
+            
         
     def add_multimedia_to_athlete_goal(self, goal_id: int, url: str):
         with self.Session() as session:
