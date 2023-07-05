@@ -59,6 +59,15 @@ class TrainingDal:
             except SQLAlchemyError as e:
                 return []
 
+    def valid_name(self, name: str):
+        if not name or len(name) < 3 or len(name) > 50:
+            raise HTTPException(
+                status_code=400, detail="El nombre debe tener entre 3 y 50 caracteres")
+    
+    def valid_description(self, description: str):
+        if not description or len(description) < 10 or len(description) > 100:
+            raise HTTPException(
+                status_code=400, detail="La descripción debe tener entre 10 y 100 caracteres")
     def valid_schedule(self, start: str, end: str):
         start_split = start.split(":")
         end_split = end.split(":")
@@ -111,6 +120,8 @@ class TrainingDal:
                     raise HTTPException(
                         status_code=400, detail="Faltan campos obligatorios (trainerId, titulo, tipo, dificultad, localización, inicio, fin, días, latitud o longitud)")
 
+                self.valid_name(training.title)
+                self.valid_description(training.description)
                 self.valid_schedule(training.start, training.end)
 
                 self.valid_days(training.days)
@@ -123,10 +134,12 @@ class TrainingDal:
                 session.commit()
                 session.refresh(training)
                 return training
-            except IntegrityError as e:
+            except Exception as e:
                 session.rollback()
+                if e.detail:
+                    raise e
                 raise HTTPException(
-                    status_code=500, detail=e.args[0])
+                    status_code=500, detail="Falta algún campo obligatorio")
 
     def update_training(self, newtraining: TrainingPlan):
         with self.Session() as session:
@@ -154,10 +167,10 @@ class TrainingDal:
                     TrainingPlan.id == newtraining.id).first()
                 return updated_training
 
-            except IntegrityError as e:
+            except Exception as e:
                 session.rollback()
                 raise HTTPException(
-                    status_code=500, detail=e.args[0])
+                    status_code=500, detail="Falta algún campo obligatorio")
 
     def get_training_by_hours(self, start: str, end: str):
         with self.Session() as session:
