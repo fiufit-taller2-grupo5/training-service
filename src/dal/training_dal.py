@@ -64,7 +64,8 @@ class TrainingDal:
             try:
                 query = session.query(TrainingPlan)
                 query.filter(TrainingPlan.state == ACTIVE_STATE)
-                return query.limit(limit).all()[:limit]
+                results = query.limit(limit).all()[:limit]
+                return [t.as_dict() for t in results]
             except Exception as e:
                 print(f"Faild getting trainings with limit, error: {e}")
                 return []
