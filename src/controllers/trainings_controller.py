@@ -482,6 +482,10 @@ async def get_recommendations(user_id: int):
             print(f"Adding {len(more_trainings)} more trainings")
             trainings = trainings + more_trainings
 
+            # add the multimedia to all trainings
+        for training in trainings:
+            training["multimedia"] = training_dal.get_training_images(training["id"])
+
         return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
         print(f"Error in recommendations: {e}")
