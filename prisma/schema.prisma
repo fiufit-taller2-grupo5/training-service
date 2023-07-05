@@ -108,6 +108,8 @@ model AthleteGoal {
   type        String
   metric      Int
   athleteId   Int
+  achieved    Boolean      @default(false)
+  lastAchieved String?
   multimedia  Multimedia[]
 
   @@schema("training-service")

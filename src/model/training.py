@@ -48,6 +48,8 @@ class AthleteGoal(Base):
     type = Column(String, nullable=True)
     metric = Column(Integer, nullable=True)
     athleteId = Column(Integer, nullable=True)
+    achieved = Column(Integer, nullable=True)
+    lastAchieved = Column(String, nullable=True)
 
     def as_dict(self):
         return {
@@ -57,6 +59,8 @@ class AthleteGoal(Base):
             "type": self.type,
             "metric": self.metric,
             "athleteId": self.athleteId,
+            "achieved": self.achieved,
+            "lastAchieved": self.lastAchieved,
         }
 
 

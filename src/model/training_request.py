@@ -47,3 +47,5 @@ class AthleteGoalRequest(BaseModel):
     description: str = None
     type: str = None
     metric: int = None
+    achieved: bool = None
+    lastAchieved: str = None

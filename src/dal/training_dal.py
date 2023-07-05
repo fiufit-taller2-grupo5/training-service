@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, or_, extract
 from decimal import Decimal
 import random
+import re
+
 
 class TrainingDal:
 
@@ -741,7 +743,7 @@ class TrainingDal:
             return res_filtered
 
 
-    def create_athlete_goal(self, title: str, description: str, type: str, metric: str, athlete_id: int):
+    def create_athlete_goal(self, title: str, description: str, type: str, metric: str, achieved: bool, lastAchieved: datetime, athlete_id: int):
         with self.Session() as session:
             self.check_if_user_exists(athlete_id)
 
@@ -762,7 +764,7 @@ class TrainingDal:
                 description=description,
                 type=type,
                 metric=metric,
-                athleteId=athlete_id
+                athleteId=athlete_id                
             )
 
             session.add(new_athlete_goal)
@@ -809,13 +811,36 @@ class TrainingDal:
             session.commit()
             return goal
         
-    def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str):
+
+    def validate_date_time(self, date_time_string: str):
+        pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+        if re.match(pattern, date_time_string):
+            return True
+        else:
+            return False
+    
+    def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str, achieved: bool, lastAchieved: str):
         with self.Session() as session:
             goal = self.check_if_athlete_goal_exists(goal_id)
             if metric < 0:
                 raise HTTPException(
                     status_code=400, detail="La métrica debe ser positiva")
             
+            print(lastAchieved)
+            if lastAchieved is not None and self.validate_date_time(lastAchieved) is False:
+                raise HTTPException(
+                    status_code=400, detail="La fecha de último logro no tiene el formato correcto")
+            
+            # copare the lastAchieved date with the current date (knowing it is a string in fomrat YYYY-MM-DDTHH:MM:SSZ)
+            if lastAchieved is not None and datetime.strptime(lastAchieved, "%Y-%m-%dT%H:%M:%SZ") > datetime.now():
+                raise HTTPException(
+                    status_code=400, detail="La fecha de último logro no puede ser posterior a la actual")
+            
+
+            if achieved and lastAchieved is None:
+                raise HTTPException(
+                    status_code=400, detail="Si el objetivo está logrado, debe indicarse la fecha de último logro")
+                        
             if type not in ["Calorias", "Pasos", "Distancia"]:
                 raise HTTPException(
                     status_code=400, detail="Tipo de objetivo inválido: (Calorias, Pasos, Distancia))")
@@ -825,7 +850,9 @@ class TrainingDal:
                 AthleteGoal.title: title,
                 AthleteGoal.description: description,
                 AthleteGoal.type: type,
-                AthleteGoal.metric: metric
+                AthleteGoal.metric: metric,
+                AthleteGoal.achieved: achieved,
+                AthleteGoal.lastAchieved: lastAchieved
             })
             session.commit()
 

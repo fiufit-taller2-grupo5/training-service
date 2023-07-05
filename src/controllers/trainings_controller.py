@@ -463,7 +463,7 @@ async def get_recommendations(user_id: int):
 @router.post("/goals/{athlete_id}")
 async def add_athlete_goal(athlete_id: int, request: AthleteGoalRequest):
     try:
-        result = training_dal.create_athlete_goal(request.title, request.description, request.type, request.metric, athlete_id)
+        result = training_dal.create_athlete_goal(request.title, request.description, request.type, request.metric, request.achieved, request.lastAchieved, athlete_id)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result.as_dict())
@@ -472,6 +472,10 @@ async def add_athlete_goal(athlete_id: int, request: AthleteGoalRequest):
 async def get_athlete_goals(athlete_id: int):
     try:
         result = training_dal.get_athlete_goals(athlete_id)
+        # add the multimedia to all goals
+        # for goal in result:
+        #     goal["multimedia"] = training_dal.get_goal_images(goal["id"])
+            
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result)
@@ -481,7 +485,7 @@ async def get_athlete_goals(athlete_id: int):
 @router.put("/goals/{goal_id}")
 async def update_athlete_goal(goal_id: int, request: AthleteGoalRequest):
     try:
-        result = training_dal.update_athlete_goal(goal_id, request.title, request.description, request.type, request.metric)
+        result = training_dal.update_athlete_goal(goal_id, request.title, request.description, request.type, request.metric, request.achieved, request.lastAchieved)
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     return JSONResponse(status_code=200, content=result.as_dict())
