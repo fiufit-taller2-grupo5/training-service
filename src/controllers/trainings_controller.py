@@ -451,7 +451,10 @@ async def get_recommendations(user_id: int):
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
 
         if trainings_response is None:
-            return JSONResponse(status_code=500, content={"message": "Error in OpenAI api"})
+            trainings_failure = training_dal.get_trainings_with_limit(10)
+            for t in trainings_failure:
+                t["multimedia"] = training_dal.get_training_images(training["id"])
+            return JSONResponse(status_code=200, content=trainings_failure)
 
         allowed_training_types = ["Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing", "Hiking"]
         recommendation_types = []
@@ -489,14 +492,11 @@ async def get_recommendations(user_id: int):
         return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
         print(f"Error in recommendations: {e}")
-        try:
-            trainings_failure = training_dal.get_trainings_with_limit(10)
-            for t in trainings_failure:
-                t["multimedia"] = training_dal.get_training_images(training["id"])
+        trainings_failure = training_dal.get_trainings_with_limit(10)
+        for t in trainings_failure:
+            t["multimedia"] = training_dal.get_training_images(training["id"])
 
-            return JSONResponse(status_code=200, content=trainings_failure)
-        except Exception as e:
-            return JSONResponse(status_code=500, content={"message": e})
+        return JSONResponse(status_code=200, content=trainings_failure)
     
 
 
