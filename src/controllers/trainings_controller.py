@@ -451,9 +451,11 @@ async def get_recommendations(user_id: int):
         trainings_response = recommend_trainings(age, weight_kg, height_cm, gender, interests, last_trainings)
 
         if trainings_response is None:
+            print("Recommendations from OPENAI failed, returning 10 trainings")
             trainings_failure = training_dal.get_trainings_with_limit(10)
             for t in trainings_failure:
                 t["multimedia"] = training_dal.get_training_images(t["id"])
+            print(f"Found {len(trainings_failure)} trainings")
             return JSONResponse(status_code=200, content=trainings_failure)
 
         allowed_training_types = ["Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing", "Hiking"]
