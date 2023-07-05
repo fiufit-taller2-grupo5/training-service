@@ -746,7 +746,7 @@ class TrainingDal:
             try:
                 choice_1 = random.choice(keywords)
                 choice_2 = random.choice(keywords)
-                choice_3 = random.chouce(keywords)
+                choice_3 = random.choice(keywords)
                 print(f"Keywords: 1. {choice_1}, 2. {choice_2}, 3. {choice_3}")
                 res_keyword_1 = self.get_trainings_by_keyword(session, choice_1)
                 res_keyword_2 = self.get_trainings_by_keyword(session, choice_2)
