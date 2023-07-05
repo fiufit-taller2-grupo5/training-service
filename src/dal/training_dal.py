@@ -745,9 +745,9 @@ class TrainingDal:
         with self.Session() as session:
             self.check_if_user_exists(athlete_id)
 
-            if title is None or type is None or description is None:
+            if title is None or type is None or description is None or metric is None:
                 raise HTTPException(
-                    status_code=400, detail="Faltan campos obligatorios (titulo, tipo o descripción)")
+                    status_code=400, detail="Faltan campos obligatorios (titulo, tipo, metrica o descripción)")
             
             if metric < 0:
                 raise HTTPException(
@@ -775,9 +775,21 @@ class TrainingDal:
             self.check_if_user_exists(athlete_id)
             goals = session.query(AthleteGoal).filter(
                 AthleteGoal.athleteId == athlete_id).all()
+            
             if not goals:
                 return []
-            return [goal.as_dict() for goal in goals]
+            
+            goals = [goal.as_dict() for goal in goals]
+
+            for goal in goals:
+                goal["multimedia"] = []
+                multimedia = session.query(Multimedia).filter(
+                    Multimedia.athleteGoalId == goal["id"]).all()
+                if multimedia:
+                    goal["multimedia"] = [m.as_dict()["fileUrl"] for m in multimedia]
+
+                
+            return goals
 
 
     def check_if_athlete_goal_exists(self, goal_id: int):
