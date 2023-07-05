@@ -489,7 +489,14 @@ async def get_recommendations(user_id: int):
         return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
         print(f"Error in recommendations: {e}")
-        return JSONResponse(status_code=500, content={"message": e})
+        try:
+            trainings_failure = training_dal.get_trainings_with_limit(10)
+            for t in trainings_failure:
+                t["multimedia"] = training_dal.get_training_images(training["id"])
+
+            return JSONResponse(status_code=200, content=trainings_failure)
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"message": e})
     
 
 
