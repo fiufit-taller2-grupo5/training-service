@@ -756,7 +756,7 @@ class TrainingDal:
             return res_filtered
 
 
-    def create_athlete_goal(self, title: str, description: str, type: str, metric: str, achieved: bool, lastAchieved: datetime, athlete_id: int):
+    def create_athlete_goal(self, title: str, description: str, type: str, metric: str, athlete_id: int):
         with self.Session() as session:
             self.check_if_user_exists(athlete_id)
 
@@ -777,7 +777,9 @@ class TrainingDal:
                 description=description,
                 type=type,
                 metric=metric,
-                athleteId=athlete_id                
+                athleteId=athlete_id,
+                achieved=False,
+                lastAchieved=None         
             )
 
             session.add(new_athlete_goal)
@@ -832,29 +834,20 @@ class TrainingDal:
         else:
             return False
     
-    def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str, achieved: bool, lastAchieved: str):
+    def update_athlete_goal(self, goal_id: int, title: str, description: str, type: str, metric: str, achieved: bool):
         with self.Session() as session:
             goal = self.check_if_athlete_goal_exists(goal_id)
+
+            if title is None or type is None or description is None or metric is None:
+                raise HTTPException(
+                    status_code=400, detail="Faltan campos obligatorios (titulo, tipo, metrica o descripción)")
+
             if metric < 0:
                 raise HTTPException(
                     status_code=400, detail="La métrica debe ser positiva")
             
-            print(lastAchieved)
-            if lastAchieved is not None and self.validate_date_time(lastAchieved) is False:
-                raise HTTPException(
-                    status_code=400, detail="La fecha de último logro no tiene el formato correcto")
-            
-            # copare the lastAchieved date with the current date (knowing it is a string in fomrat YYYY-MM-DDTHH:MM:SSZ)
-            if lastAchieved is not None and datetime.strptime(lastAchieved, "%Y-%m-%dT%H:%M:%SZ") > datetime.now():
-                raise HTTPException(
-                    status_code=400, detail="La fecha de último logro no puede ser posterior a la actual")
-            
-
-            if achieved and lastAchieved is None:
-                raise HTTPException(
-                    status_code=400, detail="Si el objetivo está logrado, debe indicarse la fecha de último logro")
                         
-            if type not in ["Calorias", "Pasos", "Distancia"]:
+            if type and type not in ["Calorias", "Pasos", "Distancia"]:
                 raise HTTPException(
                     status_code=400, detail="Tipo de objetivo inválido: (Calorias, Pasos, Distancia))")
             
@@ -863,15 +856,27 @@ class TrainingDal:
                 AthleteGoal.title: title,
                 AthleteGoal.description: description,
                 AthleteGoal.type: type,
-                AthleteGoal.metric: metric,
-                AthleteGoal.achieved: achieved,
-                AthleteGoal.lastAchieved: lastAchieved
+                AthleteGoal.metric: metric
             })
             session.commit()
 
             updated_goal = session.query(AthleteGoal).filter(
                 AthleteGoal.id == goal_id).first()
             return updated_goal
+        
+    def achieve_athlete_goal(self, goal_id: int):
+        with self.Session() as session:
+            goal = self.check_if_athlete_goal_exists(goal_id)
+            session.query(AthleteGoal).filter(AthleteGoal.id == goal_id).update({
+                AthleteGoal.achieved: True,
+                AthleteGoal.lastAchieved: datetime.now()
+            })
+            session.commit()
+
+            updated_goal = session.query(AthleteGoal).filter(
+                AthleteGoal.id == goal_id).first()
+            return updated_goal
+
             
         
     def add_multimedia_to_athlete_goal(self, goal_id: int, url: str):
