@@ -473,6 +473,15 @@ async def get_recommendations(user_id: int):
         print(f"Sending response response at {response_time.hour}:{response_time.minute}:{response_time.second}")
         
         trainings = get_recommendations_response(training_dal, response)
+
+        max_trainings = 10
+        if len(trainings) < max_trainings:
+            remaining = max_trainings - len(trainings)
+            print(f"Only found {len(trainings)} trainings, looking for {remaining} more")
+            more_trainings = training_dal.get_trainings_with_limit(remaining)
+            print(f"Adding {len(more_trainings)} more trainings")
+            trainings = trainings + remaining
+
         return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
         print(f"Error in recommendations: {e}")

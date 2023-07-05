@@ -59,6 +59,17 @@ class TrainingDal:
             except SQLAlchemyError as e:
                 return []
 
+    def get_trainings_with_limit(self, limit) -> List[TrainingPlan]:
+        with self.Session() as session:
+            try:
+                query = session.query(TrainingPlan)
+                query.filter(TrainingPlan.state == ACTIVE_STATE)
+                return query.limit(limit).all()[:limit]
+            except Exception as e:
+                print(f"Faild getting trainings with limit, error: {e}")
+                return []
+
+
     def valid_name(self, name: str):
         if not name or len(name) < 3 or len(name) > 50:
             raise HTTPException(
