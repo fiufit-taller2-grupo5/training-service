@@ -730,7 +730,7 @@ class TrainingDal:
     def get_trainings_by_keyword(self, session, keyword):
         print(f"Getting trainings for keyword: {keyword}")
         query = session.query(TrainingPlan)
-        query = query.filter(TrainingPlan.name.ilike(f"%{keyword}%"))
+        query = query.filter(TrainingPlan.title.ilike(f"%{keyword}%"))
         return query.limit(2).all()
 
 

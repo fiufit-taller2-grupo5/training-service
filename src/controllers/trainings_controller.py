@@ -480,7 +480,7 @@ async def get_recommendations(user_id: int):
             print(f"Only found {len(trainings)} trainings, looking for {remaining} more")
             more_trainings = training_dal.get_trainings_with_limit(remaining)
             print(f"Adding {len(more_trainings)} more trainings")
-            trainings = trainings + remaining
+            trainings = trainings + more_trainings
 
         return JSONResponse(status_code=200, content=trainings)
     except Exception as e:
