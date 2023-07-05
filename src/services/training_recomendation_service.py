@@ -71,6 +71,8 @@ def recommend_trainings(age, weight, height, gender, interests, last_trainings):
     if api_key is None:
         print("No openai api key found!")
         return None
+    else:
+        print(f"Api key: {api_key}")
 
     openai.api_key = api_key
     
