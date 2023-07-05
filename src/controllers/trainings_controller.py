@@ -453,7 +453,7 @@ async def get_recommendations(user_id: int):
         if trainings_response is None:
             trainings_failure = training_dal.get_trainings_with_limit(10)
             for t in trainings_failure:
-                t["multimedia"] = training_dal.get_training_images(training["id"])
+                t["multimedia"] = training_dal.get_training_images(t["id"])
             return JSONResponse(status_code=200, content=trainings_failure)
 
         allowed_training_types = ["Running", "Swimming", "Biking", "Yoga", "Basketball", "Football", "Walking", "Gymnastics", "Dancing", "Hiking"]
@@ -494,7 +494,7 @@ async def get_recommendations(user_id: int):
         print(f"Error in recommendations: {e}")
         trainings_failure = training_dal.get_trainings_with_limit(10)
         for t in trainings_failure:
-            t["multimedia"] = training_dal.get_training_images(training["id"])
+            t["multimedia"] = training_dal.get_training_images(t["id"])
 
         return JSONResponse(status_code=200, content=trainings_failure)
     
